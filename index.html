@@ -111,6 +111,7 @@
     <h2><span class="step">3</span>选你的设备，照着做</h2>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" data-t="mac" aria-selected="true">💻 Mac</button>
+      <button class="tab" role="tab" data-t="win" aria-selected="false">🪟 Windows</button>
       <button class="tab" role="tab" data-t="android" aria-selected="false">🤖 安卓</button>
       <button class="tab" role="tab" data-t="ios" aria-selected="false">📱 iPhone / iPad</button>
     </div>
@@ -128,6 +129,22 @@
         <li>左侧 <b>「内核设置」</b> → 点旋转箭头重启。首页模式选 <b>规则</b>。</li>
       </ol>
       <details><summary class="muted">看一眼生成的内容</summary><pre id="pre-mac"></pre></details>
+    </div>
+
+    <div data-p="win" class="hidden">
+      <p class="big">Clash Verge Rev（推荐）</p>
+      <div class="row"><button data-copy="win">① 复制脚本</button>
+        <button class="ghost" data-dl="win">或下载 homeport-verge.js</button></div>
+      <ol>
+        <li>打开 Clash Verge Rev → 左侧 <b>「订阅」</b>，确认机场订阅已导入并选中。</li>
+        <li>在你的机场订阅卡片上 <b>右键</b> → <b>「扩展脚本」</b>（找不到的话，用订阅页里的「全局扩展脚本」卡片 → 右键 → 编辑文件）。</li>
+        <li>把里面原有内容<b>全部删掉</b>，粘贴刚才复制的脚本 → <b>保存</b>。</li>
+        <li>回到 <b>「代理」</b> 页，模式选 <b>规则</b>；右上角刷新或重新选中一次订阅，让配置重新加载。</li>
+      </ol>
+      <div class="note">Clash Verge Rev 默认端口是 <b>7897</b>（不是 7890），终端和 curl 检查时记得用 7897。</div>
+      <details><summary class="muted">看一眼生成的内容</summary><pre id="pre-win"></pre></details>
+      <p class="big" style="margin-top:18px">用 Clash Party？</p>
+      <p class="muted" style="margin-top:0">Clash Party 也有 Windows 版，步骤和 Mac 完全一样，切到「💻 Mac」标签照做即可。</p>
     </div>
 
     <div data-p="android" class="hidden">
@@ -321,10 +338,15 @@ function build(v) {
     .replace('password: "<PASSWORD>"', "password: " + yq(v.pass))
     .replace(/const SUFFIX = \[[\s\S]*?\];\n\nconst KEYWORD = [\s\S]*?;\n\nconst PROCESS = \[[\s\S]*?\];\n\n/, "")
     .replace(/  const rules = \[[\s\S]*?\n  \];/, rulesJs);
+  const win = android
+    .replace("// homeport · FlClash 覆写脚本（FlClash ≥ 0.8.85）", "// homeport · Clash Verge Rev 扩展脚本")
+    .replace("// 改完以后别再从 URL 重新导入，否则会被占位符覆盖。\n", "")
+    .replace("const main = (config) => {", "function main(config, profileName) {")
+    .replace(/\n};\s*$/, "\n}\n");
   const iostext = "#!name=homeport\n#!desc=选中的网站走备注为 🏠住宅出口-勿选 的住宅节点\n\n[Rule]\n" + s.common.join("\n") + "\n";
   const b64 = btoa(unescape(encodeURIComponent(`${v.user}:${v.pass}@${v.host}:${v.port}`)));
   const iosnode = `http://${b64}?remarks=${encodeURIComponent(EXIT)}`;
-  return { mac, android, iosnode, iosmod: MODULE_URL, iostext, sel: s };
+  return { mac, android, win, iosnode, iosmod: MODULE_URL, iostext, sel: s };
 }
 
 function renderSummary() {
@@ -344,7 +366,7 @@ function render(msg) {
   if (!v) {
     cur = null;
     $("status").innerHTML = msg ? `<span class="err">${msg}</span>` : "填好四项后，下面的按钮就能用了。";
-    $("pre-mac").textContent = $("pre-android").textContent = "（先在第 1 步填写）";
+    $("pre-mac").textContent = $("pre-android").textContent = $("pre-win").textContent = "（先在第 1 步填写）";
     $("qr").innerHTML = '<span style="color:#888;font-size:13px">填好后显示二维码</span>';
     $("hostHint").textContent = "";
     const s = selection();
@@ -357,6 +379,7 @@ function render(msg) {
     Webshare 用户这里应该填 <code>p.webshare.io</code>，填出口 IP 会一直超时。</span>` : "");
   $("pre-mac").textContent = cur.mac;
   $("pre-android").textContent = cur.android;
+  $("pre-win").textContent = cur.win;
   $("pre-ios").textContent = cur.iostext;
   $("iosCustom").classList.toggle("hidden", cur.sel.isDefault);
   $("ruleStat").innerHTML = `共 ${cur.sel.common.length} 条规则` + (cur.sel.android.length ? `（安卓另加 ${cur.sel.android.length} 条 App 规则）` : "") +
@@ -384,7 +407,7 @@ document.querySelectorAll("[data-dl]").forEach((b) => b.addEventListener("click"
   const k = b.dataset.dl;
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([cur[k]], { type: "text/plain" }));
-  a.download = k === "mac" ? "homeport.yaml" : "homeport.js";
+  a.download = { mac: "homeport.yaml", android: "homeport.js", win: "homeport-verge.js" }[k];
   a.click();
 }));
 
@@ -393,6 +416,7 @@ document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () 
   document.querySelectorAll("[data-p]").forEach((p) => p.classList.toggle("hidden", p.dataset.p !== t.dataset.t));
 }));
 if (/iPhone|iPad/i.test(navigator.userAgent)) document.querySelector('[data-t="ios"]').click();
+else if (/Windows/i.test(navigator.userAgent)) document.querySelector('[data-t="win"]').click();
 else if (/Android/i.test(navigator.userAgent)) document.querySelector('[data-t="android"]').click();
 
 render();

@@ -27,6 +27,7 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 3. [Mac：Clash Party](#3-macclash-party)
 4. [安卓：FlClash](#4-安卓flclash)
 5. [iPhone / iPad：Shadowrocket（小火箭）](#5-iphone--ipadshadowrocket小火箭)
+   - [Windows：Clash Verge Rev](#windowsclash-verge-rev)
 6. [检查是否成功](#6-检查是否成功)
 7. [Claude Code、终端、Chrome 的额外设置](#7-claude-code终端chrome-的额外设置)
 8. [常见问题](#8-常见问题)
@@ -85,6 +86,7 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 | 设备 | 客户端 | 怎么装 |
 | --- | --- | --- |
 | Mac | Clash Party | 去官方 GitHub Releases 下载 `.dmg` |
+| Windows | Clash Verge Rev（或 Clash Party） | 去官方 GitHub Releases 下载 `.exe` 安装包 |
 | 安卓 | FlClash（版本 ≥ 0.8.85） | 去官方 GitHub Releases 下载 `.apk` |
 | iPhone / iPad | Shadowrocket | 美区 App Store 购买 |
 
@@ -256,6 +258,24 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 
 ---
 
+## Windows：Clash Verge Rev
+
+> 最省事：打开[一键配置页](https://0xkaka.github.io/homeport/)，切到「🪟 Windows」，复制生成好的脚本直接粘贴。
+> 用 Clash Party 的 Windows 版？步骤和 [Mac](#3-macclash-party) 完全一样。
+
+Clash Verge Rev 用「扩展脚本」，内容和安卓 FlClash 的脚本几乎一样，只是开头那行要写成 `function main(config, profileName) {`。
+
+1. 打开 Clash Verge Rev → 左侧 **「订阅」**，确认机场订阅已导入并选中。
+2. 在机场订阅卡片上 **右键 → 「扩展脚本」**（或者用订阅页里的「全局扩展脚本」卡片 → 右键 → 编辑文件）。
+3. 删掉原有内容，粘贴脚本：
+   - 用一键页：直接粘贴生成好的；
+   - 手动：复制 [`flclash/homeport.js`](flclash/homeport.js) 的全部内容，把 `const main = (config) => {` 改成 `function main(config, profileName) {`，最后一行 `};` 改成 `}`，再按 [安卓第 2 步](#第-2-步填住宅代理-1) 填好 `HOME` 里的四项。
+4. 保存 → 左侧 **「代理」**，模式选 **规则**；回订阅页重新点选一次订阅，让配置重新加载。
+
+> ⚠️ Clash Verge Rev 的默认端口是 **7897**，下文检查和终端设置里的 `7890` 都换成 `7897`（以「设置 → 端口设置」里显示的为准）。
+
+---
+
 ## 6. 检查是否成功
 
 **目标：所有设备看到的 IP 一模一样，而且就是你住宅代理的 IP。**
@@ -313,6 +333,15 @@ Chrome 会用 QUIC（基于 UDP）偷偷绕过代理，导致 IP 不一致。
 
 3. 关掉终端重新打开（或运行 `source ~/.zshrc`）。
 4. 验证：运行 `curl https://ipv4.webshare.io/`，应显示住宅 IP。
+
+**Windows（PowerShell）**：Clash Verge Rev 端口 7897，Clash Party 为 7890。当前窗口临时生效：
+
+```powershell
+$env:HTTP_PROXY="http://127.0.0.1:7897"
+$env:HTTPS_PROXY="http://127.0.0.1:7897"
+```
+
+长期生效：运行 `setx HTTP_PROXY http://127.0.0.1:7897` 和 `setx HTTPS_PROXY http://127.0.0.1:7897`，然后重开终端。验证用 `curl.exe https://ipv4.webshare.io/`。
 
 ---
 
