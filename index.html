@@ -81,12 +81,12 @@
     <p class="muted" style="margin:0">服务商后台给你的那一串，直接整串粘进来就行。支持这些格式：<br>
       <code>地址:端口:用户名:密码</code>　<code>用户名:密码@地址:端口</code>　<code>http://用户名:密码@地址:端口</code></p>
     <label for="raw">整串粘贴（推荐）</label>
-    <input id="raw" placeholder="例如 198.51.100.23:6123:abcd1234:xyz789" autocomplete="off" spellcheck="false">
+    <input id="raw" placeholder="例如 p.webshare.io:80:abcd1234-1:xyz789" autocomplete="off" spellcheck="false">
     <div class="note" style="margin-top:10px">⚠️ <b>地址</b>要填后台的 <b>Proxy Address / 代理地址</b>（比如 Webshare 是 <code>p.webshare.io</code>），
       <b>不是</b> “Assigned IP / 出口 IP”。出口 IP 只是最后网站看到的 IP，用来核对结果。</div>
     <p class="muted" style="margin:8px 0 0">或者分开填：</p>
     <div class="grid">
-      <div><label for="host">地址</label><input id="host" autocomplete="off" spellcheck="false"></div>
+      <div><label for="host">地址（填 Proxy Address，<b>不是</b> Assigned IP）</label><input id="host" placeholder="如 p.webshare.io" autocomplete="off" spellcheck="false"></div>
       <div><label for="port">端口</label><input id="port" inputmode="numeric" autocomplete="off"></div>
       <div><label for="user">用户名</label><input id="user" autocomplete="off" spellcheck="false"></div>
       <div><label for="pass">密码</label><input id="pass" autocomplete="off" spellcheck="false"></div>
@@ -170,7 +170,7 @@
           <div class="row"><button class="ghost" data-copy="iosnode">复制节点链接</button></div>
         </li>
         <li style="margin-top:12px"><b>方法 B：手动。</b>首页 ＋ → 类型 <b>HTTP</b>，按下面填：<br>
-          地址 <code id="m-host"></code>　端口 <code id="m-port"></code><br>
+          地址 <code id="m-host"></code>（代理地址，不是出口 IP）　端口 <code id="m-port"></code><br>
           用户 <code id="m-user"></code>　密码 <code id="m-pass"></code><br>
           备注 <code>HP_Home</code>（必须一字不差）</li>
       </ul>
@@ -354,7 +354,9 @@ function render(msg) {
     return;
   }
   cur = build(v);
-  $("status").innerHTML = `<span class="ok">✓ 已识别：${v.host}:${v.port}，用户 ${v.user}</span>`;
+  $("status").innerHTML = `<span class="ok">✓ 已识别：${v.host}:${v.port}，用户 ${v.user}</span>` +
+    (/^\d+\.\d+\.\d+\.\d+$/.test(v.host) ? `<br><span class="err">⚠️ 地址是一个 IP。请确认它是后台的 <b>Proxy Address</b>，而不是 <b>Assigned IP（出口 IP）</b>。
+    Webshare 用户这里应该填 <code>p.webshare.io</code>，填出口 IP 会一直超时。</span>` : "");
   $("pre-mac").textContent = cur.mac;
   $("pre-android").textContent = cur.android;
   $("pre-ios").textContent = cur.iostext;
@@ -363,7 +365,7 @@ function render(msg) {
     (cur.sel.bad.length ? `<br><span class="err">这几行没看懂，已忽略：${cur.sel.bad.map((x) => x.replace(/</g, "&lt;")).join("、")}</span>` : "");
   $("m-host").textContent = v.host; $("m-port").textContent = v.port;
   $("m-user").textContent = v.user; $("m-pass").textContent = v.pass;
-  $("hostHint").textContent = /^\d+\.\d+\.\d+\.\d+$/.test(v.host) ? `（一般就是 ${v.host}）` : "";
+  $("hostHint").textContent = "（后台的 Assigned IP / 出口 IP）";
   $("qr").innerHTML = "";
   if (window.QRCode) new QRCode($("qr"), { text: cur.iosnode, width: 200, height: 200 });
   else $("qr").textContent = "二维码组件没加载出来，请用方法 B 手动添加。";

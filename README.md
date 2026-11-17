@@ -12,7 +12,7 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 
 打开 👉 **https://0xkaka.github.io/homeport/**
 
-1. 把住宅代理那一串（如 `198.51.100.23:6123:abcd1234:xyz789`）整串粘进去；
+1. 把住宅代理那一串（如 `p.webshare.io:80:abcd1234-1:xyz789`）整串粘进去；
 2. 选你的设备，点「复制」，到 App 里粘贴（iPhone 可以直接扫码加节点）；
 3. 打开 `ipv4.webshare.io` 看 IP 对不对。
 
@@ -71,14 +71,14 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 
 | 项目 | 举例（假的，别照抄） |
 | --- | --- |
-| 地址 / Host | `198.51.100.23` |
-| 端口 / Port | `6123` |
-| 用户名 / Username | `abcd1234` |
+| 地址 / Host（Proxy Address，不是 Assigned IP） | `p.webshare.io` |
+| 端口 / Port | `80` |
+| 用户名 / Username | `abcd1234-1` |
 | 密码 / Password | `xyz789` |
 
 > ⚠️ **地址填 Proxy Address（代理地址），不是 Assigned IP / 出口 IP。** 比如 Webshare 后台一行里同时有 `p.webshare.io`（代理地址）和 `9.x.x.x`（Assigned IP），要填的是 `p.webshare.io`；那个 IP 是最后网站看到的出口，用来核对结果。
 
-> 💡 有的服务商给的是一整串，比如 `198.51.100.23:6123:abcd1234:xyz789`，按冒号拆开就是 地址:端口:用户名:密码。
+> 💡 有的服务商给的是一整串，比如 `p.webshare.io:80:abcd1234-1:xyz789`，按冒号拆开就是 地址:端口:用户名:密码。
 
 ### ③ 对应的客户端
 
@@ -124,9 +124,9 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 3. 把它改成你自己的，例如：
 
    ```yaml
-       server: "198.51.100.23"
-       port: 6123
-       username: "abcd1234"
+       server: "p.webshare.io"
+       port: 80
+       username: "abcd1234-1"
        password: "xyz789"
    ```
 
@@ -179,9 +179,9 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 
    ```js
    const HOME = {
-     server: "198.51.100.23",
-     port: 6123,
-     username: "abcd1234",
+     server: "p.webshare.io",
+     port: 80,
+     username: "abcd1234-1",
      password: "xyz789",
    };
    ```
@@ -225,9 +225,9 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 
    | 栏位 | 填什么 |
    | --- | --- |
-   | 地址 | 住宅代理地址，如 `198.51.100.23` |
-   | 端口 | 如 `6123` |
-   | 用户 | 如 `abcd1234` |
+   | 地址 | 代理地址（Proxy Address），如 `p.webshare.io`，**不是出口 IP** |
+   | 端口 | 如 `80` |
+   | 用户 | 如 `abcd1234-1` |
    | 密码 | 如 `xyz789` |
    | **备注** | **`HP_Home`**（必须一字不差，大小写也一样） |
 
