@@ -1,0 +1,83 @@
+# homeport · Clash Party 覆写
+#
+# 作用：Claude、Google、支付和风控相关域名统一走住宅出口 HP_Home。
+# 链路：本机 → HP_Relay（机场节点，自动测速）→ HP_Home（住宅 HTTP 代理）→ 目标站点。
+#
+# 使用前把 HP_Home 的 server / port / username / password 换成自己的住宅代理。
+# 改完以后别再点“更新”，否则会被链接里的占位符覆盖。
+#
+# HP_Relay 只挑名字里带台湾/日本/新加坡/美国/韩国的节点，排除香港。
+#   - 机场节点名不带这些词 → 放宽 filter。
+#   - 想加兜底节点 → 取消 empty-fallback 注释，填订阅里真实存在的节点名
+#     （不能填策略组名或 DIRECT，填错整份配置会加载失败）。
+# 所有中转都不能用时：删掉 proxy-groups+ 整段，dialer-proxy 改成 DIRECT。
+
+proxies+:
+  - name: HP_Home
+    type: http
+    server: "<HOST>"
+    port: 0
+    username: "<USERNAME>"
+    password: "<PASSWORD>"
+    dialer-proxy: HP_Relay
+    # dialer-proxy: DIRECT
+
+proxy-groups+:
+  - name: HP_Relay
+    type: url-test
+    hidden: true
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    lazy: false
+    include-all: true
+    filter: '(?i)(台湾|台灣|日本|新加坡|美国|美國|韩国|韓國|\b(TW|JP|SG|US|KR)\b)'
+    exclude-filter: '(?i)倍率|IPv6|到期|剩余|官网|失联|故障|香港|\bHK\b'
+    # empty-fallback: "<订阅里的真实节点名>"
+
++rules:
+  # Anthropic IPv6 段经住宅代理会 502，先拒掉，客户端会自动回落 IPv4
+  - IP-CIDR6,2607:6bc0::/48,REJECT,no-resolve
+  - IP-CIDR6,2607:6bc0:11::/48,REJECT,no-resolve
+
+  # Claude / Anthropic
+  - DOMAIN-SUFFIX,claude.ai,HP_Home
+  - DOMAIN-SUFFIX,claude.com,HP_Home
+  - DOMAIN-SUFFIX,clau.de,HP_Home
+  - DOMAIN-SUFFIX,anthropic.com,HP_Home
+  - DOMAIN-SUFFIX,claudeusercontent.com,HP_Home
+  - DOMAIN-SUFFIX,claudemcpcontent.com,HP_Home
+  - DOMAIN-SUFFIX,modelcontextprotocol.io,HP_Home
+  - DOMAIN-KEYWORD,anthropic,HP_Home
+  - DOMAIN-KEYWORD,claude,HP_Home
+  - IP-CIDR,160.79.104.0/21,HP_Home,no-resolve
+  - IP-ASN,399358,HP_Home,no-resolve
+
+  # 监控 / 风控 / 验证 / 支付
+  - DOMAIN-SUFFIX,sentry.io,HP_Home
+  - DOMAIN-KEYWORD,browser-intake,HP_Home
+  - DOMAIN-SUFFIX,datadoghq.com,HP_Home
+  - DOMAIN-SUFFIX,growthbook.io,HP_Home
+  - DOMAIN-SUFFIX,usefathom.com,HP_Home
+  - DOMAIN-SUFFIX,segment.io,HP_Home
+  - DOMAIN-SUFFIX,siftscience.com,HP_Home
+  - DOMAIN-SUFFIX,hcaptcha.com,HP_Home
+  - DOMAIN-SUFFIX,challenges.cloudflare.com,HP_Home
+  - DOMAIN-SUFFIX,intercom.io,HP_Home
+  - DOMAIN-SUFFIX,intercomcdn.com,HP_Home
+  - DOMAIN-SUFFIX,stripe.com,HP_Home
+  - DOMAIN-SUFFIX,stripe.network,HP_Home
+  - DOMAIN-SUFFIX,stripecdn.com,HP_Home
+  - DOMAIN-SUFFIX,withpersona.com,HP_Home
+
+  # Google（含 Gmail、Google Pay）
+  - DOMAIN-SUFFIX,google.com,HP_Home
+  - DOMAIN-SUFFIX,googleapis.com,HP_Home
+  - DOMAIN-SUFFIX,gstatic.com,HP_Home
+  - DOMAIN-SUFFIX,googleusercontent.com,HP_Home
+  - DOMAIN-SUFFIX,gmail.com,HP_Home
+  - DOMAIN-SUFFIX,recaptcha.net,HP_Home
+
+  # 出口 IP 检测
+  - DOMAIN-SUFFIX,webshare.io,HP_Home
+  - DOMAIN-SUFFIX,ipinfo.io,HP_Home
