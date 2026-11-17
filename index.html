@@ -51,6 +51,10 @@
   #qr { background: #fff; padding: 12px; border-radius: 10px; display: inline-block; margin: 8px 0; }
   .muted { color: var(--muted); font-size: 13px; }
   .big { font-size: 16px; font-weight: 600; }
+  .buy { display: flex; gap: 10px; align-items: center; text-decoration: none; color: var(--text);
+    background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 12px; padding: 12px 14px; margin: 0 0 4px; }
+  .buy b { color: var(--accent); margin-right: 4px; }
+  .buy:hover { filter: brightness(1.05); }
   #ruleBox { margin-top: 10px; }
   #ruleBox > summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 14px; }
   .chip { display: inline-block; font-size: 12px; background: var(--accent-soft); color: var(--accent);
@@ -68,9 +72,12 @@
   <h1>homeport 一键配置</h1>
   <p class="sub">填上你的住宅代理，这个页面直接生成可用的配置，复制粘贴就能用。<br>
   <b>所有处理都在你自己的浏览器里完成，账号密码不会上传到任何地方。</b></p>
+  <a class="buy" href="https://x.com/0xjackkk/status/2117862295397335283" target="_blank" rel="noopener">
+    <span>🛒</span><span><b>还没有住宅 IP？</b>看这篇：便宜静态住宅 IP 购买教程 →</span></a>
 
   <section class="card">
     <h2><span class="step">1</span>粘贴住宅代理信息</h2>
+    <p class="muted" style="margin:0 0 6px">没有的话先买一条：<a href="https://x.com/0xjackkk/status/2117862295397335283" target="_blank" rel="noopener">便宜住宅 IP 购买教程</a></p>
     <p class="muted" style="margin:0">服务商后台给你的那一串，直接整串粘进来就行。支持这些格式：<br>
       <code>地址:端口:用户名:密码</code>　<code>用户名:密码@地址:端口</code>　<code>http://用户名:密码@地址:端口</code></p>
     <label for="raw">整串粘贴（推荐）</label>
