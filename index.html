@@ -148,8 +148,8 @@
 
     <div data-p="ios" class="hidden">
       <p class="big">Shadowrocket（小火箭）</p>
-      <div class="note"><b>顺序很重要：先装模块，再加节点。</b>整个过程中，首页<b>选中的节点</b>一直保持你平时用的机场节点，<b>不要点选 HP_Home</b>。
-        HP_Home 只给规则用，选中它会让所有流量都走住宅代理，GitHub 等网站可能打不开。</div>
+      <div class="note"><b>顺序很重要：先装模块，再加节点。</b>整个过程中，首页<b>选中的节点</b>一直保持你平时用的机场节点，<b>不要点选 🏠住宅出口-勿选</b>。
+        🏠住宅出口-勿选 只给规则用，选中它会让所有流量都走住宅代理，GitHub 等网站可能打不开。</div>
 
       <p><b>第一步：装规则模块</b>（趁现在网络正常）<br>
         首页先确认能正常上网 → 底部 <b>配置</b> → <b>模块</b> → 右上角 ＋，粘贴下面链接 → 下载。</p>
@@ -172,13 +172,13 @@
         <li style="margin-top:12px"><b>方法 B：手动。</b>首页 ＋ → 类型 <b>HTTP</b>，按下面填：<br>
           地址 <code id="m-host"></code>（代理地址，不是出口 IP）　端口 <code id="m-port"></code><br>
           用户 <code id="m-user"></code>　密码 <code id="m-pass"></code><br>
-          备注 <code>HP_Home</code>（必须一字不差）</li>
+          备注 <code>🏠住宅出口-勿选</code>（必须一字不差，带房子图标，建议点按钮复制）<div class="row"><button class="ghost" data-copy="remark">复制备注名</button></div></li>
       </ul>
-      <div class="note">添加后确认<b>备注是 HP_Home</b>。如果小火箭自动选中了 HP_Home（名字前面出现<b>橙色圆点</b>），<b>马上点回你的机场节点</b>，否则所有网站都会走住宅代理，住宅代理一卡就全部没网。</div>
+      <div class="note">添加后确认<b>备注是 🏠住宅出口-勿选</b>。如果小火箭自动选中了 🏠住宅出口-勿选（名字前面出现<b>橙色圆点</b>），<b>马上点回你的机场节点</b>，否则所有网站都会走住宅代理，住宅代理一卡就全部没网。</div>
 
-      <p><b>第三步：设跳板</b>：点 HP_Home 右边 ⓘ → <b>代理通过</b> → 选一个台湾/日本/新加坡/美国/韩国节点 → 保存。<br>
+      <p><b>第三步：设跳板</b>：点 🏠住宅出口-勿选 右边 ⓘ → <b>代理通过</b> → 选一个台湾/日本/新加坡/美国/韩国节点 → 保存。<br>
         <span class="muted">设好后节点下面会显示类似 <code>HTTP / 跳板名 &gt; SHADOWSOCKS</code>，意思是“HTTP 住宅代理，经由某个 Shadowsocks 跳板”，这是正常的。
-        HP_Home 测速显示“超时”不一定代表不能用，以第 4 步打开 ipv4.webshare.io 的结果为准。</span></p>
+        🏠住宅出口-勿选 测速显示“超时”不一定代表不能用，以第 4 步打开 ipv4.webshare.io 的结果为准。</span></p>
 
       <p><b>第四步：切到配置模式</b>：首页 <b>全局路由</b> 选 <b>配置</b>；选中的节点是<b>机场节点</b>；打开开关。<br>
         <span class="muted">这样只有 Claude、Google 等走住宅出口，其他网站照常走机场。</span></p>
@@ -205,7 +205,7 @@ const tpl = {};
 let cur = null;
 
 Promise.all(["clash-party/override.yaml", "flclash/homeport.js"].map((p) =>
-  fetch(BASE + p, { cache: "no-store" }).then((r) => { if (!r.ok) throw r.status; return r.text(); })
+  fetch((location.protocol.startsWith("http") ? "" : BASE) + p, { cache: "no-store" }).then((r) => { if (!r.ok) throw r.status; return r.text(); })
 )).then(([y, j]) => { tpl.mac = y; tpl.android = j; render(); })
   .catch(() => { $("status").innerHTML = '<span class="err">模板加载失败：请先连上能访问 GitHub 的网络，再刷新本页。</span>'; });
 
@@ -235,7 +235,7 @@ function read() {
 }
 
 const yq = (s) => JSON.stringify(s); // JSON 字符串同时是合法的 YAML 双引号字符串和 JS 字符串
-const EXIT = "HP_Home";
+const EXIT = "🏠住宅出口-勿选";
 
 // 规则分组。on = 默认是否勾选；rules 里 "S:" 域名后缀，"K:" 关键词，其余为整条规则（不含策略）；
 // android 只对安卓生效（按 App 包名分流）
@@ -323,9 +323,9 @@ function build(v) {
     .replace('password: "<PASSWORD>"', "password: " + yq(v.pass))
     .replace(/const SUFFIX = \[[\s\S]*?\];\n\nconst KEYWORD = [\s\S]*?;\n\nconst PROCESS = \[[\s\S]*?\];\n\n/, "")
     .replace(/  const rules = \[[\s\S]*?\n  \];/, rulesJs);
-  const iostext = "#!name=homeport\n#!desc=选中的网站走备注为 HP_Home 的住宅节点\n\n[Rule]\n" + s.common.join("\n") + "\n";
+  const iostext = "#!name=homeport\n#!desc=选中的网站走备注为 🏠住宅出口-勿选 的住宅节点\n\n[Rule]\n" + s.common.join("\n") + "\n";
   const b64 = btoa(unescape(encodeURIComponent(`${v.user}:${v.pass}@${v.host}:${v.port}`)));
-  const iosnode = `http://${b64}?remarks=HP_Home`;
+  const iosnode = `http://${b64}?remarks=${encodeURIComponent(EXIT)}`;
   return { mac, android, iosnode, iosmod: MODULE_URL, iostext, sel: s };
 }
 
@@ -340,7 +340,7 @@ function render(msg) {
   renderSummary();
   const v = read();
   document.querySelectorAll("[data-copy],[data-dl]").forEach((b) => {
-    b.disabled = !v && b.dataset.copy !== "iosmod";
+    b.disabled = !v && !["iosmod", "remark"].includes(b.dataset.copy);
   });
   if (!tpl.mac) return;
   if (!v) {
@@ -373,7 +373,7 @@ function render(msg) {
 
 document.querySelectorAll("[data-copy]").forEach((b) => b.addEventListener("click", async () => {
   const k = b.dataset.copy;
-  const text = k === "iosmod" ? MODULE_URL : cur && cur[k];
+  const text = k === "iosmod" ? MODULE_URL : k === "remark" ? EXIT : cur && cur[k];
   if (!text) return;
   try { await navigator.clipboard.writeText(text); }
   catch { const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }

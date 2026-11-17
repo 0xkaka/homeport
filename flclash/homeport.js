@@ -1,7 +1,7 @@
 // homeport · FlClash 覆写脚本（FlClash ≥ 0.8.85）
 //
-// 作用：Claude、Google、支付和风控相关域名统一走住宅出口 HP_Home。
-// 链路：本机 → HP_Relay（机场节点，自动测速）→ HP_Home（住宅 HTTP 代理）→ 目标站点。
+// 作用：Claude、Google、支付和风控相关域名统一走住宅出口 🏠住宅出口-勿选。
+// 链路：本机 → HP_Relay（机场节点，自动测速）→ 🏠住宅出口-勿选（住宅 HTTP 代理）→ 目标站点。
 //
 // 使用前把下面 HOME 里的 server / port / username / password 换成自己的住宅代理。
 // 改完以后别再从 URL 重新导入，否则会被占位符覆盖。
@@ -15,7 +15,7 @@ const HOME = {
   password: "<PASSWORD>",
 };
 
-const EXIT = "HP_Home";
+const EXIT = "🏠住宅出口-勿选";
 const RELAY = "HP_Relay";
 const RELAY_FILTER = "(?i)(台湾|台灣|日本|新加坡|美国|美國|韩国|韓國|\\b(TW|JP|SG|US|KR)\\b)";
 const RELAY_EXCLUDE = "(?i)倍率|IPv6|到期|剩余|官网|失联|故障|香港|\\bHK\\b";

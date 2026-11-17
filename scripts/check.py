@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXIT, RELAY = "HP_Home", "HP_Relay"
+EXIT, RELAY = "🏠住宅出口-勿选", "HP_Relay"
 TYPES = {"DOMAIN-SUFFIX", "DOMAIN-KEYWORD", "IP-CIDR", "IP-CIDR6", "IP-ASN", "PROCESS-NAME"}
 errors = []
 
