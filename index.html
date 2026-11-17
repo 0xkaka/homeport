@@ -146,7 +146,21 @@
 
     <div data-p="ios" class="hidden">
       <p class="big">Shadowrocket（小火箭）</p>
-      <p><b>第一步：加住宅节点</b>（二选一）</p>
+      <div class="note"><b>顺序很重要：先装模块，再加节点。</b>整个过程中，首页<b>选中的节点</b>一直保持你平时用的机场节点，<b>不要点选 HP_Home</b>。
+        HP_Home 只给规则用，选中它会让所有流量都走住宅代理，GitHub 等网站可能打不开。</div>
+
+      <p><b>第一步：装规则模块</b>（趁现在网络正常）<br>
+        首页先确认能正常上网 → 底部 <b>配置</b> → <b>模块</b> → 右上角 ＋，粘贴下面链接 → 下载。</p>
+      <div class="row"><button class="ghost" data-copy="iosmod">复制模块链接</button></div>
+      <div id="iosCustom" class="hidden">
+        <div class="note">你改过第 2 步的网站选择，在线模块里是默认规则。装好模块后还要替换成你的版本：
+          在 <b>模块</b> 列表里点开 homeport → 编辑 → 全选删掉 → 粘贴下面复制的内容 → 保存。
+          以后别点这个模块的“更新”，否则会变回默认。</div>
+        <div class="row"><button data-copy="iostext">复制我的模块内容</button></div>
+        <details><summary class="muted">看一眼</summary><pre id="pre-ios"></pre></details>
+      </div>
+
+      <p style="margin-top:16px"><b>第二步：加住宅节点</b>（二选一）</p>
       <ul style="padding-left:20px">
         <li><b>方法 A：扫码。</b>小火箭首页左上角扫码图标，扫下面这个码：<br>
           <div id="qr"></div><br>
@@ -158,18 +172,12 @@
           用户 <code id="m-user"></code>　密码 <code id="m-pass"></code><br>
           备注 <code>HP_Home</code>（必须一字不差）</li>
       </ul>
-      <div class="note">添加后点一下节点，确认<b>备注是 HP_Home</b>。不是就改成 HP_Home，否则规则找不到它。</div>
-      <p><b>第二步：设跳板</b>：点 HP_Home 右边 ⓘ → <b>代理通过</b> → 选一个台湾/日本/新加坡/美国/韩国节点。</p>
-      <p><b>第三步：装规则模块</b>：底部 <b>配置</b> → <b>模块</b> → 右上角 ＋，粘贴下面链接 → 下载。</p>
-      <div class="row"><button class="ghost" data-copy="iosmod">复制模块链接</button></div>
-      <div id="iosCustom" class="hidden">
-        <div class="note">你改过第 2 步的网站选择，在线模块里是默认规则。装好模块后还要替换成你的版本：
-          在 <b>模块</b> 列表里点开 homeport → 编辑 → 全选删掉 → 粘贴下面复制的内容 → 保存。
-          以后别点这个模块的“更新”，否则会变回默认。</div>
-        <div class="row"><button data-copy="iostext">复制我的模块内容</button></div>
-        <details><summary class="muted">看一眼</summary><pre id="pre-ios"></pre></details>
-      </div>
-      <p><b>第四步</b>：首页 <b>全局路由</b> 选 <b>配置</b>，打开开关。</p>
+      <div class="note">添加后确认<b>备注是 HP_Home</b>。如果小火箭自动选中了 HP_Home（前面出现勾 / 圆点），<b>马上点回你的机场节点</b>。</div>
+
+      <p><b>第三步：设跳板</b>：点 HP_Home 右边 ⓘ → <b>代理通过</b> → 选一个台湾/日本/新加坡/美国/韩国节点 → 保存。</p>
+
+      <p><b>第四步：切到配置模式</b>：首页 <b>全局路由</b> 选 <b>配置</b>；选中的节点是<b>机场节点</b>；打开开关。<br>
+        <span class="muted">这样只有 Claude、Google 等走住宅出口，其他网站照常走机场。</span></p>
     </div>
     <p id="copied" class="ok"></p>
   </section>
