@@ -76,8 +76,6 @@
   <b>所有处理都在你自己的浏览器里完成，账号密码不会上传到任何地方。</b></p>
   <a class="buy" href="https://x.com/0xjackkk/status/2117862295397335283" target="_blank" rel="noopener">
     <span>🛒</span><span><b>还没有住宅 IP？</b>看这篇：便宜静态住宅 IP 购买教程 →</span></a>
-  <a class="buy" href="https://vpsding.com/" target="_blank" rel="noopener">
-    <span>🖥️</span><span><b>便宜 VPS 库存</b>vpsding.com →</span></a>
 
   <section class="card">
     <h2><span class="step">1</span>粘贴住宅代理信息</h2>
@@ -88,7 +86,7 @@
     <input id="raw" placeholder="例如 p.webshare.io:80:abcd1234-1:xyz789" autocomplete="off" spellcheck="false">
     <p class="muted" style="margin:8px 0 0">或者分开填：</p>
     <div class="grid">
-      <div><label for="host">地址</label><input id="host" placeholder="域名或 IP，如 p.webshare.io、50.2.71.50" autocomplete="off" spellcheck="false"></div>
+      <div><label for="host">地址</label><input id="host" placeholder="域名，如 p.webshare.io" autocomplete="off" spellcheck="false"></div>
       <div><label for="port">端口</label><input id="port" inputmode="numeric" autocomplete="off"></div>
       <div><label for="user">用户名</label><input id="user" autocomplete="off" spellcheck="false"></div>
       <div><label for="pass">密码</label><input id="pass" autocomplete="off" spellcheck="false"></div>
@@ -257,7 +255,7 @@ $("raw").addEventListener("input", () => {
 });
 for (const k of ["host", "port", "user", "pass"]) $(k).addEventListener("input", () => render());
 document.querySelectorAll("[name=proto]").forEach((r) => r.addEventListener("change", () => {
-  $("host").placeholder = proto() === "socks5" ? "如 50.2.71.50" : "域名或 IP，如 p.webshare.io、50.2.71.50";
+  $("host").placeholder = proto() === "socks5" ? "域名或 IP，如 50.2.71.50" : "域名，如 p.webshare.io";
   render();
 }));
 
