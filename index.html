@@ -57,6 +57,8 @@
   .buy:hover { filter: brightness(1.05); }
   #ruleBox { margin-top: 10px; }
   #ruleBox > summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 14px; }
+  .proto { display: inline-flex; gap: 6px; align-items: center; margin: 0 14px 0 0; font-size: 15px; color: var(--text); cursor: pointer; }
+  .proto input { width: auto; accent-color: var(--accent); }
   .chip { display: inline-block; font-size: 12px; background: var(--accent-soft); color: var(--accent);
     border-radius: 999px; padding: 2px 10px; margin: 2px 4px 2px 0; }
   .grp { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid var(--line); cursor: pointer; }
@@ -84,10 +86,15 @@
     <input id="raw" placeholder="例如 p.webshare.io:80:abcd1234-1:xyz789" autocomplete="off" spellcheck="false">
     <p class="muted" style="margin:8px 0 0">或者分开填：</p>
     <div class="grid">
-      <div><label for="host">地址（填 Proxy Address，<b>不是</b> Assigned IP）</label><input id="host" placeholder="如 p.webshare.io" autocomplete="off" spellcheck="false"></div>
+      <div><label for="host">地址（Webshare 这类要填 Proxy Address，<b>不是</b> Assigned IP）</label><input id="host" placeholder="如 p.webshare.io" autocomplete="off" spellcheck="false"></div>
       <div><label for="port">端口</label><input id="port" inputmode="numeric" autocomplete="off"></div>
       <div><label for="user">用户名</label><input id="user" autocomplete="off" spellcheck="false"></div>
       <div><label for="pass">密码</label><input id="pass" autocomplete="off" spellcheck="false"></div>
+    </div>
+    <label>协议（后台写的是哪个就选哪个；不确定先选 HTTP，不通再换 SOCKS5）</label>
+    <div class="row" style="margin-top:0" id="protoBox">
+      <label class="proto"><input type="radio" name="proto" value="http" checked> HTTP</label>
+      <label class="proto"><input type="radio" name="proto" value="socks5"> SOCKS5</label>
     </div>
     <p id="status" class="muted"></p>
   </section>
@@ -184,7 +191,7 @@
           <span class="muted">在手机上看这个页面的话：点「复制节点链接」，打开小火箭，它一般会自动弹出“添加节点”。</span>
           <div class="row"><button class="ghost" data-copy="iosnode">复制节点链接</button></div>
         </li>
-        <li style="margin-top:12px"><b>方法 B：手动。</b>首页 ＋ → 类型 <b>HTTP</b>，按下面填：<br>
+        <li style="margin-top:12px"><b>方法 B：手动。</b>首页 ＋ → 类型 <b id="m-type">HTTP</b>，按下面填：<br>
           地址 <code id="m-host"></code>（代理地址，不是出口 IP）　端口 <code id="m-port"></code><br>
           用户 <code id="m-user"></code>　密码 <code id="m-pass"></code><br>
           备注 <code>🏠住宅出口-勿选</code>（必须一字不差，带房子图标，建议点按钮复制）<div class="row"><button class="ghost" data-copy="remark">复制备注名</button></div></li>
@@ -224,8 +231,14 @@ Promise.all(["clash-party/override.yaml", "flclash/homeport.js"].map((p) =>
 )).then(([y, j]) => { tpl.mac = y; tpl.android = j; render(); })
   .catch(() => { $("status").innerHTML = '<span class="err">模板加载失败：请先连上能访问 GitHub 的网络，再刷新本页。</span>'; });
 
+function setProto(p) { document.querySelector(`[name=proto][value=${p}]`).checked = true; }
+const proto = () => document.querySelector("[name=proto]:checked").value;
+
 function parseRaw(s) {
-  s = s.trim().replace(/^https?:\/\//i, "").replace(/\/+$/, "");
+  s = s.trim();
+  if (/^socks5?h?:\/\//i.test(s)) setProto("socks5");
+  else if (/^https?:\/\//i.test(s)) setProto("http");
+  s = s.replace(/^[a-z0-9]+:\/\//i, "").replace(/\/+$/, "");
   let m = s.match(/^(.+):(.+)@([^:@]+):(\d+)$/);
   if (m) return { user: m[1], pass: m[2], host: m[3], port: m[4] };
   m = s.match(/^([^:@]+):(\d+)@(.+?):(.+)$/);
@@ -241,9 +254,10 @@ $("raw").addEventListener("input", () => {
   render(!p && $("raw").value.trim() ? "这串格式没认出来，请在下面分开填。" : "");
 });
 for (const k of ["host", "port", "user", "pass"]) $(k).addEventListener("input", () => render());
+document.querySelectorAll("[name=proto]").forEach((r) => r.addEventListener("change", () => render()));
 
 function read() {
-  const v = { host: $("host").value.trim(), port: $("port").value.trim(), user: $("user").value.trim(), pass: $("pass").value.trim() };
+  const v = { proto: proto(), host: $("host").value.trim(), port: $("port").value.trim(), user: $("user").value.trim(), pass: $("pass").value.trim() };
   if (!v.host || !v.user || !v.pass) return null;
   if (!/^\d+$/.test(v.port) || +v.port < 1 || +v.port > 65535) return null;
   return v;
@@ -325,6 +339,7 @@ function build(v) {
   const s = selection();
   const rulesYaml = "+rules:\n" + s.common.map((r) => "  - " + r).join("\n") + "\n";
   const mac = tpl.mac
+    .replace(/type: http\n/, "type: " + v.proto + "\n")
     .replace('server: "<HOST>"', "server: " + yq(v.host))
     .replace(/port: 0\b/, "port: " + v.port)
     .replace('username: "<USERNAME>"', "username: " + yq(v.user))
@@ -332,6 +347,7 @@ function build(v) {
     .replace(/\+rules:[\s\S]*$/, rulesYaml);
   const rulesJs = "  const rules = [\n" + [...s.common, ...s.android].map((r) => "    " + yq(r) + ",").join("\n") + "\n  ];";
   const android = tpl.android
+    .replace('type: "http",', "type: " + yq(v.proto) + ",")
     .replace('server: "<HOST>"', "server: " + yq(v.host))
     .replace(/port: 0,/, "port: " + v.port + ",")
     .replace('username: "<USERNAME>"', "username: " + yq(v.user))
@@ -345,7 +361,7 @@ function build(v) {
     .replace(/\n};\s*$/, "\n}\n");
   const iostext = "#!name=homeport\n#!desc=选中的网站走备注为 🏠住宅出口-勿选 的住宅节点\n\n[Rule]\n" + s.common.join("\n") + "\n";
   const b64 = btoa(unescape(encodeURIComponent(`${v.user}:${v.pass}@${v.host}:${v.port}`)));
-  const iosnode = `http://${b64}?remarks=${encodeURIComponent(EXIT)}`;
+  const iosnode = `${v.proto === "socks5" ? "socks" : "http"}://${b64}?remarks=${encodeURIComponent(EXIT)}`;
   return { mac, android, win, iosnode, iosmod: MODULE_URL, iostext, sel: s };
 }
 
@@ -374,9 +390,10 @@ function render(msg) {
     return;
   }
   cur = build(v);
-  $("status").innerHTML = `<span class="ok">✓ 已识别：${v.host}:${v.port}，用户 ${v.user}</span>` +
-    (/^\d+\.\d+\.\d+\.\d+$/.test(v.host) ? `<br><span class="err">⚠️ 地址是一个 IP。请确认它是后台的 <b>Proxy Address</b>，而不是 <b>Assigned IP（出口 IP）</b>。
-    Webshare 用户这里应该填 <code>p.webshare.io</code>，填出口 IP 会一直超时。</span>` : "");
+  $("status").innerHTML = `<span class="ok">✓ 已识别：${v.proto.toUpperCase()} ${v.host}:${v.port}，用户 ${v.user}</span>` +
+    (/^\d+\.\d+\.\d+\.\d+$/.test(v.host) ? `<br><span class="muted">💡 地址是一个 IP：如果后台只给了这一个 IP（IP:端口 形式），填它就对；
+    如果后台同时有代理地址和 Assigned IP（比如 Webshare 的 <code>p.webshare.io</code>），要填代理地址，填出口 IP 会一直超时。</span>` : "");
+  $("m-type").textContent = v.proto === "socks5" ? "Socks5" : "HTTP";
   $("pre-mac").textContent = cur.mac;
   $("pre-android").textContent = cur.android;
   $("pre-win").textContent = cur.win;
