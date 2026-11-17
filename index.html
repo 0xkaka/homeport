@@ -172,9 +172,11 @@
           用户 <code id="m-user"></code>　密码 <code id="m-pass"></code><br>
           备注 <code>HP_Home</code>（必须一字不差）</li>
       </ul>
-      <div class="note">添加后确认<b>备注是 HP_Home</b>。如果小火箭自动选中了 HP_Home（前面出现勾 / 圆点），<b>马上点回你的机场节点</b>。</div>
+      <div class="note">添加后确认<b>备注是 HP_Home</b>。如果小火箭自动选中了 HP_Home（名字前面出现<b>橙色圆点</b>），<b>马上点回你的机场节点</b>，否则所有网站都会走住宅代理，住宅代理一卡就全部没网。</div>
 
-      <p><b>第三步：设跳板</b>：点 HP_Home 右边 ⓘ → <b>代理通过</b> → 选一个台湾/日本/新加坡/美国/韩国节点 → 保存。</p>
+      <p><b>第三步：设跳板</b>：点 HP_Home 右边 ⓘ → <b>代理通过</b> → 选一个台湾/日本/新加坡/美国/韩国节点 → 保存。<br>
+        <span class="muted">设好后节点下面会显示类似 <code>HTTP / 跳板名 &gt; SHADOWSOCKS</code>，意思是“HTTP 住宅代理，经由某个 Shadowsocks 跳板”，这是正常的。
+        HP_Home 测速显示“超时”不一定代表不能用，以第 4 步打开 ipv4.webshare.io 的结果为准。</span></p>
 
       <p><b>第四步：切到配置模式</b>：首页 <b>全局路由</b> 选 <b>配置</b>；选中的节点是<b>机场节点</b>；打开开关。<br>
         <span class="muted">这样只有 Claude、Google 等走住宅出口，其他网站照常走机场。</span></p>
