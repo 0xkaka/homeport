@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>homeport 一键配置</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --text: #1d2129; --muted: #6b7280; --line: #e5e7eb;
+    --accent: #2563eb; --accent-soft: #eff4ff; --ok: #16a34a; --warn: #b45309; --warn-soft: #fff7ed;
+    --code: #f3f4f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1115; --card: #171a21; --text: #e5e7eb; --muted: #9ca3af; --line: #2a2f3a;
+      --accent: #60a5fa; --accent-soft: #1b2638; --ok: #4ade80; --warn: #fbbf24; --warn-soft: #2a2114;
+      --code: #0b0d12;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.65 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 26px; margin: 8px 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin: 16px 0; }
+  .step { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px;
+    border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: 14px; margin-right: 8px; }
+  h2 { font-size: 18px; margin: 0 0 12px; display: flex; align-items: center; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
+  input, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--bg); color: var(--text); font: 15px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  input:focus, textarea:focus { outline: 2px solid var(--accent); border-color: transparent; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+  @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
+  button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 16px; font-size: 15px; font-weight: 600;
+    background: var(--accent); color: #fff; }
+  button.ghost { background: var(--accent-soft); color: var(--accent); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .tab { background: var(--bg); color: var(--text); border: 1px solid var(--line); font-weight: 500; }
+  .tab[aria-selected="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  ol { padding-left: 22px; margin: 8px 0; } li { margin: 6px 0; }
+  code { background: var(--code); padding: 1px 6px; border-radius: 6px; font-size: 13px; word-break: break-all; }
+  pre { background: var(--code); padding: 12px; border-radius: 10px; overflow: auto; max-height: 220px; font-size: 12px; margin: 8px 0; }
+  .note { background: var(--warn-soft); color: var(--warn); border-radius: 10px; padding: 10px 12px; font-size: 14px; margin: 10px 0; }
+  .ok { color: var(--ok); font-size: 14px; }
+  .err { color: #dc2626; font-size: 14px; }
+  .hidden { display: none; }
+  #qr { background: #fff; padding: 12px; border-radius: 10px; display: inline-block; margin: 8px 0; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .big { font-size: 16px; font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>homeport 一键配置</h1>
+  <p class="sub">填上你的住宅代理，这个页面直接生成可用的配置，复制粘贴就能用。<br>
+  <b>所有处理都在你自己的浏览器里完成，账号密码不会上传到任何地方。</b></p>
+
+  <section class="card">
+    <h2><span class="step">1</span>粘贴住宅代理信息</h2>
+    <p class="muted" style="margin:0">服务商后台给你的那一串，直接整串粘进来就行。支持这些格式：<br>
+      <code>地址:端口:用户名:密码</code>　<code>用户名:密码@地址:端口</code>　<code>http://用户名:密码@地址:端口</code></p>
+    <label for="raw">整串粘贴（推荐）</label>
+    <input id="raw" placeholder="例如 198.51.100.23:6123:abcd1234:xyz789" autocomplete="off" spellcheck="false">
+    <p class="muted" style="margin:8px 0 0">或者分开填：</p>
+    <div class="grid">
+      <div><label for="host">地址</label><input id="host" autocomplete="off" spellcheck="false"></div>
+      <div><label for="port">端口</label><input id="port" inputmode="numeric" autocomplete="off"></div>
+      <div><label for="user">用户名</label><input id="user" autocomplete="off" spellcheck="false"></div>
+      <div><label for="pass">密码</label><input id="pass" autocomplete="off" spellcheck="false"></div>
+    </div>
+    <p id="status" class="muted"></p>
+  </section>
+
+  <section class="card" id="out">
+    <h2><span class="step">2</span>选你的设备，照着做</h2>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-t="mac" aria-selected="true">💻 Mac</button>
+      <button class="tab" role="tab" data-t="android" aria-selected="false">🤖 安卓</button>
+      <button class="tab" role="tab" data-t="ios" aria-selected="false">📱 iPhone / iPad</button>
+    </div>
+
+    <div data-p="mac">
+      <p class="big">Clash Party</p>
+      <div class="row">
+        <button data-copy="mac">① 复制配置</button>
+        <button class="ghost" data-dl="mac">或下载 homeport.yaml</button>
+      </div>
+      <ol>
+        <li>打开 Clash Party → 左侧 <b>「覆写」</b> → 右上角 <b>＋ 新建</b>（或导入本地文件，选刚下载的 <code>homeport.yaml</code>）。</li>
+        <li>如果是新建：把内容<b>全部删掉</b>，粘贴刚才复制的配置，保存。</li>
+        <li>左侧 <b>「订阅」</b> → 在机场订阅上点编辑 → 覆写里<b>勾选</b>这份 → 保存。</li>
+        <li>左侧 <b>「内核设置」</b> → 点旋转箭头重启。首页模式选 <b>规则</b>。</li>
+      </ol>
+      <details><summary class="muted">看一眼生成的内容</summary><pre id="pre-mac"></pre></details>
+    </div>
+
+    <div data-p="android" class="hidden">
+      <p class="big">FlClash</p>
+      <div class="row"><button data-copy="android">① 复制脚本</button>
+        <button class="ghost" data-dl="android">或下载 homeport.js</button></div>
+      <ol>
+        <li>打开 FlClash → <b>工具</b> → <b>进阶配置</b> → <b>脚本</b> → <b>＋ 添加</b>。</li>
+        <li>名字随便填（如 homeport），内容里粘贴刚才复制的脚本，保存。</li>
+        <li><b>配置</b> → 机场订阅右侧的配置按钮 → <b>覆写</b> → <b>脚本</b> → 选中 homeport。</li>
+        <li>回 <b>仪表盘</b>，关掉再打开连接。</li>
+      </ol>
+      <div class="note">第 3 步最容易漏：不在订阅里选中脚本，等于没装。</div>
+      <details><summary class="muted">看一眼生成的内容</summary><pre id="pre-android"></pre></details>
+    </div>
+
+    <div data-p="ios" class="hidden">
+      <p class="big">Shadowrocket（小火箭）</p>
+      <p><b>第一步：加住宅节点</b>（二选一）</p>
+      <ul style="padding-left:20px">
+        <li><b>方法 A：扫码。</b>小火箭首页左上角扫码图标，扫下面这个码：<br>
+          <div id="qr"></div><br>
+          <span class="muted">在手机上看这个页面的话：点「复制节点链接」，打开小火箭，它一般会自动弹出“添加节点”。</span>
+          <div class="row"><button class="ghost" data-copy="iosnode">复制节点链接</button></div>
+        </li>
+        <li style="margin-top:12px"><b>方法 B：手动。</b>首页 ＋ → 类型 <b>HTTP</b>，按下面填：<br>
+          地址 <code id="m-host"></code>　端口 <code id="m-port"></code><br>
+          用户 <code id="m-user"></code>　密码 <code id="m-pass"></code><br>
+          备注 <code>HP_Home</code>（必须一字不差）</li>
+      </ul>
+      <div class="note">添加后点一下节点，确认<b>备注是 HP_Home</b>。不是就改成 HP_Home，否则规则找不到它。</div>
+      <p><b>第二步：设跳板</b>：点 HP_Home 右边 ⓘ → <b>代理通过</b> → 选一个台湾/日本/新加坡/美国/韩国节点。</p>
+      <p><b>第三步：装规则模块</b>：底部 <b>配置</b> → <b>模块</b> → 右上角 ＋，粘贴下面链接 → 下载。</p>
+      <div class="row"><button class="ghost" data-copy="iosmod">复制模块链接</button></div>
+      <p><b>第四步</b>：首页 <b>全局路由</b> 选 <b>配置</b>，打开开关。</p>
+    </div>
+    <p id="copied" class="ok"></p>
+  </section>
+
+  <section class="card">
+    <h2><span class="step">3</span>检查是否成功</h2>
+    <p>每台设备都打开 <a href="https://ipv4.webshare.io/" target="_blank" rel="noopener">ipv4.webshare.io</a>，
+      显示的 IP 应该<b>全部一样</b>，且等于你住宅代理的 IP<span id="hostHint"></span>。</p>
+    <p class="muted">Mac 上的 Chrome 还要关 QUIC：地址栏打开 <code>chrome://flags/#enable-quic</code> → Disabled → Relaunch。<br>
+      Claude Code / 终端不走系统代理，详见 <a href="https://github.com/0xkaka/homeport#7-claude-code终端chrome-的额外设置">说明文档第 7 节</a>。</p>
+    <p class="muted">遇到问题看 <a href="https://github.com/0xkaka/homeport#8-常见问题">常见问题</a>。</p>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const BASE = "https://raw.githubusercontent.com/0xkaka/homeport/main/";
+const MODULE_URL = BASE + "shadowrocket/homeport.module";
+const $ = (id) => document.getElementById(id);
+const tpl = {};
+let cur = null;
+
+Promise.all(["clash-party/override.yaml", "flclash/homeport.js"].map((p) =>
+  fetch(BASE + p, { cache: "no-store" }).then((r) => { if (!r.ok) throw r.status; return r.text(); })
+)).then(([y, j]) => { tpl.mac = y; tpl.android = j; render(); })
+  .catch(() => { $("status").innerHTML = '<span class="err">模板加载失败：请先连上能访问 GitHub 的网络，再刷新本页。</span>'; });
+
+function parseRaw(s) {
+  s = s.trim().replace(/^https?:\/\//i, "").replace(/\/+$/, "");
+  let m = s.match(/^(.+):(.+)@([^:@]+):(\d+)$/);
+  if (m) return { user: m[1], pass: m[2], host: m[3], port: m[4] };
+  m = s.match(/^([^:@]+):(\d+)@(.+?):(.+)$/);
+  if (m) return { host: m[1], port: m[2], user: m[3], pass: m[4] };
+  m = s.match(/^([^:@\s]+):(\d+):([^:]+):(.+)$/);
+  if (m) return { host: m[1], port: m[2], user: m[3], pass: m[4] };
+  return null;
+}
+
+$("raw").addEventListener("input", () => {
+  const p = parseRaw($("raw").value);
+  if (p) { for (const k of ["host", "port", "user", "pass"]) $(k).value = p[k]; }
+  render(!p && $("raw").value.trim() ? "这串格式没认出来，请在下面分开填。" : "");
+});
+for (const k of ["host", "port", "user", "pass"]) $(k).addEventListener("input", () => render());
+
+function read() {
+  const v = { host: $("host").value.trim(), port: $("port").value.trim(), user: $("user").value.trim(), pass: $("pass").value.trim() };
+  if (!v.host || !v.user || !v.pass) return null;
+  if (!/^\d+$/.test(v.port) || +v.port < 1 || +v.port > 65535) return null;
+  return v;
+}
+
+const yq = (s) => JSON.stringify(s); // JSON 字符串同时是合法的 YAML 双引号字符串和 JS 字符串
+
+function build(v) {
+  const mac = tpl.mac
+    .replace('server: "<HOST>"', "server: " + yq(v.host))
+    .replace(/port: 0\b/, "port: " + v.port)
+    .replace('username: "<USERNAME>"', "username: " + yq(v.user))
+    .replace('password: "<PASSWORD>"', "password: " + yq(v.pass));
+  const android = tpl.android
+    .replace('server: "<HOST>"', "server: " + yq(v.host))
+    .replace(/port: 0,/, "port: " + v.port + ",")
+    .replace('username: "<USERNAME>"', "username: " + yq(v.user))
+    .replace('password: "<PASSWORD>"', "password: " + yq(v.pass));
+  const b64 = btoa(unescape(encodeURIComponent(`${v.user}:${v.pass}@${v.host}:${v.port}`)));
+  const iosnode = `http://${b64}?remarks=HP_Home`;
+  return { mac, android, iosnode, iosmod: MODULE_URL };
+}
+
+function render(msg) {
+  const v = read();
+  document.querySelectorAll("[data-copy],[data-dl]").forEach((b) => {
+    b.disabled = !v && b.dataset.copy !== "iosmod";
+  });
+  if (!tpl.mac) return;
+  if (!v) {
+    cur = null;
+    $("status").innerHTML = msg ? `<span class="err">${msg}</span>` : "填好四项后，下面的按钮就能用了。";
+    $("pre-mac").textContent = $("pre-android").textContent = "（先在第 1 步填写）";
+    $("qr").innerHTML = '<span style="color:#888;font-size:13px">填好后显示二维码</span>';
+    $("hostHint").textContent = "";
+    return;
+  }
+  cur = build(v);
+  $("status").innerHTML = `<span class="ok">✓ 已识别：${v.host}:${v.port}，用户 ${v.user}</span>`;
+  $("pre-mac").textContent = cur.mac;
+  $("pre-android").textContent = cur.android;
+  $("m-host").textContent = v.host; $("m-port").textContent = v.port;
+  $("m-user").textContent = v.user; $("m-pass").textContent = v.pass;
+  $("hostHint").textContent = /^\d+\.\d+\.\d+\.\d+$/.test(v.host) ? `（一般就是 ${v.host}）` : "";
+  $("qr").innerHTML = "";
+  if (window.QRCode) new QRCode($("qr"), { text: cur.iosnode, width: 200, height: 200 });
+  else $("qr").textContent = "二维码组件没加载出来，请用方法 B 手动添加。";
+}
+
+document.querySelectorAll("[data-copy]").forEach((b) => b.addEventListener("click", async () => {
+  const k = b.dataset.copy;
+  const text = k === "iosmod" ? MODULE_URL : cur && cur[k];
+  if (!text) return;
+  try { await navigator.clipboard.writeText(text); }
+  catch { const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
+  $("copied").textContent = "✓ 已复制，去 App 里粘贴吧";
+  setTimeout(() => ($("copied").textContent = ""), 2500);
+}));
+
+document.querySelectorAll("[data-dl]").forEach((b) => b.addEventListener("click", () => {
+  if (!cur) return;
+  const k = b.dataset.dl;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([cur[k]], { type: "text/plain" }));
+  a.download = k === "mac" ? "homeport.yaml" : "homeport.js";
+  a.click();
+}));
+
+document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach((x) => x.setAttribute("aria-selected", x === t));
+  document.querySelectorAll("[data-p]").forEach((p) => p.classList.toggle("hidden", p.dataset.p !== t.dataset.t));
+}));
+if (/iPhone|iPad/i.test(navigator.userAgent)) document.querySelector('[data-t="ios"]').click();
+else if (/Android/i.test(navigator.userAgent)) document.querySelector('[data-t="android"]').click();
+
+render();
+</script>
+</body>
+</html>
