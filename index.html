@@ -51,6 +51,12 @@
   #qr { background: #fff; padding: 12px; border-radius: 10px; display: inline-block; margin: 8px 0; }
   .muted { color: var(--muted); font-size: 13px; }
   .big { font-size: 16px; font-weight: 600; }
+  .grp { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--line); cursor: pointer; }
+  .grp:first-child { border-top: 0; }
+  .grp input { width: 18px; height: 18px; margin-top: 3px; flex: none; accent-color: var(--accent); }
+  .grp b { display: block; }
+  .grp small { color: var(--muted); font-size: 12px; word-break: break-all; }
+  .tag { font-size: 11px; background: var(--accent-soft); color: var(--accent); border-radius: 6px; padding: 1px 6px; margin-left: 6px; font-weight: 500; }
 </style>
 </head>
 <body>
@@ -75,8 +81,18 @@
     <p id="status" class="muted"></p>
   </section>
 
+  <section class="card">
+    <h2><span class="step">2</span>选哪些网站走住宅出口</h2>
+    <p class="muted" style="margin:0 0 8px">打勾的走住宅代理，没勾的照常走机场。不懂就保持默认。</p>
+    <div id="groups"></div>
+    <label for="custom">自己加（一行一个域名，比如 <code>example.com</code> 会包含它的所有子域名）</label>
+    <textarea id="custom" rows="3" placeholder="example.com&#10;another.net" spellcheck="false"></textarea>
+    <p class="muted" style="margin:6px 0 0">高级：也可以写整条规则，如 <code>DOMAIN-KEYWORD,openai</code>、<code>IP-CIDR,1.2.3.0/24</code>，策略会自动补上。</p>
+    <p id="ruleStat" class="muted"></p>
+  </section>
+
   <section class="card" id="out">
-    <h2><span class="step">2</span>选你的设备，照着做</h2>
+    <h2><span class="step">3</span>选你的设备，照着做</h2>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" data-t="mac" aria-selected="true">💻 Mac</button>
       <button class="tab" role="tab" data-t="android" aria-selected="false">🤖 安卓</button>
@@ -130,13 +146,20 @@
       <p><b>第二步：设跳板</b>：点 HP_Home 右边 ⓘ → <b>代理通过</b> → 选一个台湾/日本/新加坡/美国/韩国节点。</p>
       <p><b>第三步：装规则模块</b>：底部 <b>配置</b> → <b>模块</b> → 右上角 ＋，粘贴下面链接 → 下载。</p>
       <div class="row"><button class="ghost" data-copy="iosmod">复制模块链接</button></div>
+      <div id="iosCustom" class="hidden">
+        <div class="note">你改过第 2 步的网站选择，在线模块里是默认规则。装好模块后还要替换成你的版本：
+          在 <b>模块</b> 列表里点开 homeport → 编辑 → 全选删掉 → 粘贴下面复制的内容 → 保存。
+          以后别点这个模块的“更新”，否则会变回默认。</div>
+        <div class="row"><button data-copy="iostext">复制我的模块内容</button></div>
+        <details><summary class="muted">看一眼</summary><pre id="pre-ios"></pre></details>
+      </div>
       <p><b>第四步</b>：首页 <b>全局路由</b> 选 <b>配置</b>，打开开关。</p>
     </div>
     <p id="copied" class="ok"></p>
   </section>
 
   <section class="card">
-    <h2><span class="step">3</span>检查是否成功</h2>
+    <h2><span class="step">4</span>检查是否成功</h2>
     <p>每台设备都打开 <a href="https://ipv4.webshare.io/" target="_blank" rel="noopener">ipv4.webshare.io</a>，
       显示的 IP 应该<b>全部一样</b>，且等于你住宅代理的 IP<span id="hostHint"></span>。</p>
     <p class="muted">Mac 上的 Chrome 还要关 QUIC：地址栏打开 <code>chrome://flags/#enable-quic</code> → Disabled → Relaunch。<br>
@@ -184,21 +207,98 @@ function read() {
 }
 
 const yq = (s) => JSON.stringify(s); // JSON 字符串同时是合法的 YAML 双引号字符串和 JS 字符串
+const EXIT = "HP_Home";
+
+// 规则分组。on = 默认是否勾选；rules 里 "S:" 域名后缀，"K:" 关键词，其余为整条规则（不含策略）；
+// android 只对安卓生效（按 App 包名分流）
+const GROUPS = [
+  { id: "claude", name: "Claude / Anthropic", on: true, desc: "claude.ai、anthropic.com、Claude Code、MCP 等",
+    rules: ["S:claude.ai", "S:claude.com", "S:clau.de", "S:anthropic.com", "S:claudeusercontent.com",
+      "S:claudemcpcontent.com", "S:modelcontextprotocol.io", "K:anthropic", "K:claude",
+      "IP-CIDR,160.79.104.0/21,@,no-resolve", "IP-ASN,399358,@,no-resolve"],
+    android: ["com.anthropic.claude"] },
+  { id: "risk", name: "监控 / 风控 / 埋点", on: true, desc: "Sentry、Datadog、Sift、Segment、Intercom 等（网站靠它们判断你的 IP）",
+    rules: ["S:sentry.io", "K:browser-intake", "S:datadoghq.com", "S:growthbook.io", "S:usefathom.com",
+      "S:segment.io", "S:siftscience.com", "S:intercom.io", "S:intercomcdn.com"] },
+  { id: "captcha", name: "人机验证", on: true, desc: "hCaptcha、Cloudflare 验证、reCAPTCHA",
+    rules: ["S:hcaptcha.com", "S:challenges.cloudflare.com", "S:recaptcha.net"] },
+  { id: "pay", name: "支付 / 身份认证", on: true, desc: "Stripe、Persona",
+    rules: ["S:stripe.com", "S:stripe.network", "S:stripecdn.com", "S:withpersona.com"] },
+  { id: "google", name: "Google（含 Gmail、Google Pay、Gemini）", on: true, desc: "google.com、googleapis.com、gstatic.com、gmail.com 等",
+    rules: ["S:google.com", "S:googleapis.com", "S:gstatic.com", "S:googleusercontent.com", "S:gmail.com"],
+    android: ["com.android.vending", "com.google.android.apps.walletnfcrel"] },
+  { id: "ipcheck", name: "IP 检测网站", on: true, desc: "webshare.io、ipinfo.io（用来核对出口 IP）",
+    rules: ["S:webshare.io", "S:ipinfo.io"] },
+  { id: "openai", name: "OpenAI / ChatGPT", on: false, desc: "chatgpt.com、openai.com 等",
+    rules: ["S:openai.com", "S:chatgpt.com", "S:oaistatic.com", "S:oaiusercontent.com", "S:sora.com"],
+    android: ["com.openai.chatgpt"] },
+  { id: "x", name: "X（推特）/ Grok", on: false, desc: "x.com、twitter.com、grok.com",
+    rules: ["S:x.com", "S:twitter.com", "S:twimg.com", "S:grok.com", "S:x.ai"],
+    android: ["com.twitter.android", "ai.x.grok"] },
+  { id: "github", name: "GitHub / Copilot", on: false, desc: "github.com、githubcopilot.com 等",
+    rules: ["S:github.com", "S:githubusercontent.com", "S:githubcopilot.com", "S:githubassets.com"] },
+];
+
+$("groups").innerHTML = GROUPS.map((g) =>
+  `<label class="grp"><input type="checkbox" data-g="${g.id}" ${g.on ? "checked" : ""}>
+   <span><b>${g.name}${g.on ? "" : '<span class="tag">可选</span>'}</b><small>${g.desc}</small></span></label>`).join("");
+document.querySelectorAll("[data-g]").forEach((c) => c.addEventListener("change", () => render()));
+$("custom").addEventListener("input", () => render());
+
+const RULE_TYPES = /^(DOMAIN|DOMAIN-SUFFIX|DOMAIN-KEYWORD|IP-CIDR|IP-CIDR6|IP-ASN|PROCESS-NAME|GEOIP|GEOSITE)$/i;
+function toRule(x) {
+  if (x.startsWith("S:")) return `DOMAIN-SUFFIX,${x.slice(2)},${EXIT}`;
+  if (x.startsWith("K:")) return `DOMAIN-KEYWORD,${x.slice(2)},${EXIT}`;
+  return x.replace("@", EXIT);
+}
+
+function selection() {
+  const on = new Set([...document.querySelectorAll("[data-g]:checked")].map((c) => c.dataset.g));
+  const common = [], android = [], bad = [];
+  // Claude 选中时才需要拒绝 Anthropic 的 IPv6
+  if (on.has("claude")) common.push("IP-CIDR6,2607:6bc0::/48,REJECT,no-resolve", "IP-CIDR6,2607:6bc0:11::/48,REJECT,no-resolve");
+  for (const g of GROUPS) if (on.has(g.id)) {
+    common.push(...g.rules.map(toRule));
+    android.push(...(g.android || []).map((p) => `PROCESS-NAME,${p},${EXIT}`));
+  }
+  for (let line of $("custom").value.split(/\n/)) {
+    line = line.trim().replace(/^https?:\/\//i, "").replace(/^\*\./, "").replace(/[\/\s].*$/, "");
+    if (!line || line.startsWith("#")) continue;
+    if (line.includes(",")) {
+      const parts = line.split(",").map((s) => s.trim());
+      if (!RULE_TYPES.test(parts[0]) || !parts[1]) { bad.push(line); continue; }
+      const r = [parts[0].toUpperCase(), parts[1], EXIT, ...(/^IP-|^GEOIP/i.test(parts[0]) ? ["no-resolve"] : [])].join(",");
+      (/^PROCESS-NAME$/i.test(parts[0]) ? android : common).push(r);
+    } else if (/^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(line)) {
+      common.push(`DOMAIN-SUFFIX,${line.toLowerCase()},${EXIT}`);
+    } else bad.push(line);
+  }
+  const uniq = (a) => [...new Set(a)];
+  const isDefault = GROUPS.every((g) => on.has(g.id) === g.on) && !$("custom").value.trim();
+  return { common: uniq(common), android: uniq(android), bad, isDefault };
+}
 
 function build(v) {
+  const s = selection();
+  const rulesYaml = "+rules:\n" + s.common.map((r) => "  - " + r).join("\n") + "\n";
   const mac = tpl.mac
     .replace('server: "<HOST>"', "server: " + yq(v.host))
     .replace(/port: 0\b/, "port: " + v.port)
     .replace('username: "<USERNAME>"', "username: " + yq(v.user))
-    .replace('password: "<PASSWORD>"', "password: " + yq(v.pass));
+    .replace('password: "<PASSWORD>"', "password: " + yq(v.pass))
+    .replace(/\+rules:[\s\S]*$/, rulesYaml);
+  const rulesJs = "  const rules = [\n" + [...s.common, ...s.android].map((r) => "    " + yq(r) + ",").join("\n") + "\n  ];";
   const android = tpl.android
     .replace('server: "<HOST>"', "server: " + yq(v.host))
     .replace(/port: 0,/, "port: " + v.port + ",")
     .replace('username: "<USERNAME>"', "username: " + yq(v.user))
-    .replace('password: "<PASSWORD>"', "password: " + yq(v.pass));
+    .replace('password: "<PASSWORD>"', "password: " + yq(v.pass))
+    .replace(/const SUFFIX = \[[\s\S]*?\];\n\nconst KEYWORD = [\s\S]*?;\n\nconst PROCESS = \[[\s\S]*?\];\n\n/, "")
+    .replace(/  const rules = \[[\s\S]*?\n  \];/, rulesJs);
+  const iostext = "#!name=homeport\n#!desc=选中的网站走备注为 HP_Home 的住宅节点\n\n[Rule]\n" + s.common.join("\n") + "\n";
   const b64 = btoa(unescape(encodeURIComponent(`${v.user}:${v.pass}@${v.host}:${v.port}`)));
   const iosnode = `http://${b64}?remarks=HP_Home`;
-  return { mac, android, iosnode, iosmod: MODULE_URL };
+  return { mac, android, iosnode, iosmod: MODULE_URL, iostext, sel: s };
 }
 
 function render(msg) {
@@ -213,12 +313,18 @@ function render(msg) {
     $("pre-mac").textContent = $("pre-android").textContent = "（先在第 1 步填写）";
     $("qr").innerHTML = '<span style="color:#888;font-size:13px">填好后显示二维码</span>';
     $("hostHint").textContent = "";
+    const s = selection();
+    $("ruleStat").textContent = `共 ${s.common.length} 条规则`;
     return;
   }
   cur = build(v);
   $("status").innerHTML = `<span class="ok">✓ 已识别：${v.host}:${v.port}，用户 ${v.user}</span>`;
   $("pre-mac").textContent = cur.mac;
   $("pre-android").textContent = cur.android;
+  $("pre-ios").textContent = cur.iostext;
+  $("iosCustom").classList.toggle("hidden", cur.sel.isDefault);
+  $("ruleStat").innerHTML = `共 ${cur.sel.common.length} 条规则` + (cur.sel.android.length ? `（安卓另加 ${cur.sel.android.length} 条 App 规则）` : "") +
+    (cur.sel.bad.length ? `<br><span class="err">这几行没看懂，已忽略：${cur.sel.bad.map((x) => x.replace(/</g, "&lt;")).join("、")}</span>` : "");
   $("m-host").textContent = v.host; $("m-port").textContent = v.port;
   $("m-user").textContent = v.user; $("m-pass").textContent = v.pass;
   $("hostHint").textContent = /^\d+\.\d+\.\d+\.\d+$/.test(v.host) ? `（一般就是 ${v.host}）` : "";
