@@ -86,7 +86,7 @@
     <input id="raw" placeholder="例如 p.webshare.io:80:abcd1234-1:xyz789" autocomplete="off" spellcheck="false">
     <p class="muted" style="margin:8px 0 0">或者分开填：</p>
     <div class="grid">
-      <div><label for="host">地址（Webshare 这类要填 Proxy Address，<b>不是</b> Assigned IP）</label><input id="host" placeholder="如 p.webshare.io" autocomplete="off" spellcheck="false"></div>
+      <div><label for="host">地址</label><input id="host" placeholder="域名或 IP，如 p.webshare.io、50.2.71.50" autocomplete="off" spellcheck="false"></div>
       <div><label for="port">端口</label><input id="port" inputmode="numeric" autocomplete="off"></div>
       <div><label for="user">用户名</label><input id="user" autocomplete="off" spellcheck="false"></div>
       <div><label for="pass">密码</label><input id="pass" autocomplete="off" spellcheck="false"></div>
@@ -254,7 +254,10 @@ $("raw").addEventListener("input", () => {
   render(!p && $("raw").value.trim() ? "这串格式没认出来，请在下面分开填。" : "");
 });
 for (const k of ["host", "port", "user", "pass"]) $(k).addEventListener("input", () => render());
-document.querySelectorAll("[name=proto]").forEach((r) => r.addEventListener("change", () => render()));
+document.querySelectorAll("[name=proto]").forEach((r) => r.addEventListener("change", () => {
+  $("host").placeholder = proto() === "socks5" ? "如 50.2.71.50" : "域名或 IP，如 p.webshare.io、50.2.71.50";
+  render();
+}));
 
 function read() {
   const v = { proto: proto(), host: $("host").value.trim(), port: $("port").value.trim(), user: $("user").value.trim(), pass: $("pass").value.trim() };
