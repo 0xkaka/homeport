@@ -76,6 +76,8 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 | 用户名 / Username | `abcd1234` |
 | 密码 / Password | `xyz789` |
 
+> ⚠️ **地址填 Proxy Address（代理地址），不是 Assigned IP / 出口 IP。** 比如 Webshare 后台一行里同时有 `p.webshare.io`（代理地址）和 `9.x.x.x`（Assigned IP），要填的是 `p.webshare.io`；那个 IP 是最后网站看到的出口，用来核对结果。
+
 > 💡 有的服务商给的是一整串，比如 `198.51.100.23:6123:abcd1234:xyz789`，按冒号拆开就是 地址:端口:用户名:密码。
 
 ### ③ 对应的客户端
