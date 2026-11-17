@@ -51,7 +51,11 @@
   #qr { background: #fff; padding: 12px; border-radius: 10px; display: inline-block; margin: 8px 0; }
   .muted { color: var(--muted); font-size: 13px; }
   .big { font-size: 16px; font-weight: 600; }
-  .grp { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-top: 1px solid var(--line); cursor: pointer; }
+  #ruleBox { margin-top: 10px; }
+  #ruleBox > summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 14px; }
+  .chip { display: inline-block; font-size: 12px; background: var(--accent-soft); color: var(--accent);
+    border-radius: 999px; padding: 2px 10px; margin: 2px 4px 2px 0; }
+  .grp { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid var(--line); cursor: pointer; }
   .grp:first-child { border-top: 0; }
   .grp input { width: 18px; height: 18px; margin-top: 3px; flex: none; accent-color: var(--accent); }
   .grp b { display: block; }
@@ -83,12 +87,17 @@
 
   <section class="card">
     <h2><span class="step">2</span>选哪些网站走住宅出口</h2>
-    <p class="muted" style="margin:0 0 8px">打勾的走住宅代理，没勾的照常走机场。不懂就保持默认。</p>
-    <div id="groups"></div>
-    <label for="custom">自己加（一行一个域名，比如 <code>example.com</code> 会包含它的所有子域名）</label>
-    <textarea id="custom" rows="3" placeholder="example.com&#10;another.net" spellcheck="false"></textarea>
-    <p class="muted" style="margin:6px 0 0">高级：也可以写整条规则，如 <code>DOMAIN-KEYWORD,openai</code>、<code>IP-CIDR,1.2.3.0/24</code>，策略会自动补上。</p>
-    <p id="ruleStat" class="muted"></p>
+    <p class="muted" style="margin:0">不懂就保持默认，直接看第 3 步。</p>
+    <p id="selSummary" style="margin:8px 0 0"></p>
+    <details id="ruleBox">
+      <summary>修改 / 添加网站</summary>
+      <p class="muted" style="margin:8px 0 0">打勾的走住宅代理，没勾的照常走机场。</p>
+      <div id="groups"></div>
+      <label for="custom">自己加（一行一个域名，比如 <code>example.com</code> 会包含它的所有子域名）</label>
+      <textarea id="custom" rows="3" placeholder="example.com&#10;another.net" spellcheck="false"></textarea>
+      <p class="muted" style="margin:6px 0 0">高级：也可以写整条规则，如 <code>DOMAIN-KEYWORD,openai</code>、<code>IP-CIDR,1.2.3.0/24</code>，策略会自动补上。</p>
+    </details>
+    <p id="ruleStat" class="muted" style="margin:6px 0 0"></p>
   </section>
 
   <section class="card" id="out">
@@ -301,7 +310,15 @@ function build(v) {
   return { mac, android, iosnode, iosmod: MODULE_URL, iostext, sel: s };
 }
 
+function renderSummary() {
+  const on = GROUPS.filter((g) => document.querySelector(`[data-g="${g.id}"]`).checked);
+  const n = $("custom").value.split(/\n/).filter((l) => l.trim() && !l.trim().startsWith("#")).length;
+  $("selSummary").innerHTML = on.map((g) => `<span class="chip">${g.name.replace(/（.*）/, "")}</span>`).join("") +
+    (n ? `<span class="chip">自定义 ${n} 条</span>` : "") + (on.length || n ? "" : '<span class="err">一个都没选</span>');
+}
+
 function render(msg) {
+  renderSummary();
   const v = read();
   document.querySelectorAll("[data-copy],[data-dl]").forEach((b) => {
     b.disabled = !v && b.dataset.copy !== "iosmod";
