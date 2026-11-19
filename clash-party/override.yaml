@@ -6,7 +6,7 @@
 # 使用前把 🏠住宅出口-勿选 的 server / port / username / password 换成自己的住宅代理。
 # 改完以后别再点“更新”，否则会被链接里的占位符覆盖。
 #
-# HP_Relay 只挑名字里带台湾/日本/新加坡/美国/韩国的节点，排除香港。
+# HP_Relay 只挑台湾/日本/新加坡/美国/韩国的节点（认中文名、英文名、城市名、机场代码和国旗），排除香港。
 #   - 机场节点名不带这些词 → 放宽 filter。
 #   - 想加兜底节点 → 取消 empty-fallback 注释，填订阅里真实存在的节点名
 #     （不能填策略组名或 DIRECT，填错整份配置会加载失败）。
@@ -31,7 +31,7 @@ proxy-groups+:
     tolerance: 50
     lazy: false
     include-all: true
-    filter: '(?i)(台湾|台灣|日本|新加坡|美国|美國|韩国|韓國|\b(TW|JP|SG|US|KR)\b)'
+    filter: '(?i)(台湾|台灣|台北|日本|东京|東京|大阪|新加坡|狮城|美国|美國|洛杉矶|硅谷|圣何塞|西雅图|纽约|芝加哥|达拉斯|韩国|韓國|首尔|首爾|🇹🇼|🇯🇵|🇸🇬|🇺🇸|🇰🇷|Japan|Tokyo|Osaka|Taiwan|Taipei|Singapore|Korea|Seoul|United States|America|Los Angeles|San Jose|Silicon Valley|Seattle|\b(TW|JP|SG|US|USA|KR|LAX|SJC|NRT|HND|TPE|SIN|ICN)\b)'
     exclude-filter: '(?i)倍率|IPv6|到期|剩余|官网|失联|故障|香港|\bHK\b'
     # empty-fallback: "<订阅里的真实节点名>"
 

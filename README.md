@@ -15,7 +15,7 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 打开 👉 **https://0xkaka.github.io/homeport/**
 
 1. 把住宅代理那一串（如 `p.webshare.io:80:abcd1234-1:xyz789`）整串粘进去；
-2. 选你的设备，点「复制」，到 App 里粘贴（iPhone 可以直接扫码加节点）；
+2. 选你的设备和软件，点「复制」，到软件里粘贴（iPhone 可以直接扫码加节点）；
 3. 打开 `ipv4.webshare.io` 看 IP 对不对。
 
 账号密码只在你自己浏览器里处理，不会上传。下面是详细的手动教程，一键版搞不定再看。
@@ -26,15 +26,15 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 
 1. [原理（看不懂可以跳过）](#1-原理看不懂可以跳过)
 2. [开始前要准备什么](#2-开始前要准备什么)
-3. [Mac：Clash Party](#3-macclash-party)
-4. [安卓：FlClash](#4-安卓flclash)
-5. [iPhone / iPad：Shadowrocket（小火箭）](#5-iphone--ipadshadowrocket小火箭)
-   - [Windows：Clash Verge Rev](#windowsclash-verge-rev)
-6. [检查是否成功](#6-检查是否成功)
-7. [Claude Code、终端、Chrome 的额外设置](#7-claude-code终端chrome-的额外设置)
-8. [常见问题](#8-常见问题)
-9. [哪些网站会走住宅出口](#9-哪些网站会走住宅出口)
-10. [给维护者：修改规则](#10-给维护者修改规则)
+3. [Clash Party（Mac / Windows）](#3-clash-partymac--windows)
+4. [Clash Verge Rev（Windows / Mac）](#4-clash-verge-revwindows--mac)
+5. [安卓：FlClash](#5-安卓flclash)
+6. [小火箭 Shadowrocket（iPhone / iPad / Mac）](#6-小火箭-shadowrocketiphone--ipad--mac)
+7. [检查是否成功](#7-检查是否成功)
+8. [Claude Code、终端、Chrome 的额外设置](#8-claude-code终端chrome-的额外设置)
+9. [常见问题](#9-常见问题)
+10. [哪些网站会走住宅出口](#10-哪些网站会走住宅出口)
+11. [给维护者：修改规则](#11-给维护者修改规则)
 
 ---
 
@@ -57,9 +57,11 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 
 ### ① 一个机场订阅（你现在翻墙用的那个）
 
-已经能正常翻墙就行。注意节点名字里最好带“台湾 / 日本 / 新加坡 / 美国 / 韩国”或 `TW / JP / SG / US / KR` 这类字样，程序靠名字自动挑跳板。
+已经能正常翻墙就行。程序靠**节点名字**自动挑跳板，名字里要能看出是台湾 / 日本 / 新加坡 / 美国 / 韩国：中文（日本、东京、洛杉矶、台北、首尔……）、英文（Japan、Tokyo、Singapore……）、代码（`JP` `US` `SG` `TW` `KR`）、国旗（🇯🇵🇺🇸🇸🇬🇹🇼🇰🇷）都认。
 
-### ② 一条静态住宅 HTTP 代理
+> ⚠️ **只有香港节点的机场不行**（香港会被排除）。节点名实在对不上，看 [常见问题](#9-常见问题) 里怎么手动加关键字。小火箭是手动选跳板，不受影响。
+
+### ② 一条静态住宅代理（HTTP 或 SOCKS5）
 
 去住宅代理服务商购买，选的时候注意三点：
 （不会买的话先看 👉 [便宜静态住宅 IP 购买教程](https://x.com/0xjackkk/status/2117862295397335283)）
@@ -91,16 +93,20 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 
 | 设备 | 客户端 | 怎么装 |
 | --- | --- | --- |
-| Mac | Clash Party | 去官方 GitHub Releases 下载 `.dmg` |
-| Windows | Clash Verge Rev（或 Clash Party） | 去官方 GitHub Releases 下载 `.exe` 安装包 |
+| Mac | Clash Party 或 Clash Verge Rev；M 芯片 Mac 也可以用小火箭 | Clash 类去官方 GitHub Releases 下载 `.dmg`；小火箭在美区 App Store |
+| Windows | Clash Verge Rev（推荐）或 Clash Party | 去官方 GitHub Releases 下载 `.exe` 安装包 |
 | 安卓 | FlClash（版本 ≥ 0.8.85） | 去官方 GitHub Releases 下载 `.apk` |
-| iPhone / iPad | Shadowrocket | 美区 App Store 购买 |
+| iPhone / iPad | Shadowrocket（小火箭） | 美区 App Store 购买 |
 
 先确认客户端里**机场订阅已经导入、能正常翻墙**，再继续下面的步骤。
 
+> 💡 **用 v2rayN 的**：v2rayN 的分流只能选「代理 / 直连 / 拦截」，做不到“Claude 单独走住宅、住宅再经机场跳板”。请改用 Clash Verge Rev，见 [第 4 节](#4-clash-verge-revwindows--mac) 末尾。
+
 ---
 
-## 3. Mac：Clash Party
+## 3. Clash Party（Mac / Windows）
+
+> Mac 版和 Windows 版界面一样，按下面做就行。最省事的是用[一键配置页](https://0xkaka.github.io/homeport/)，复制生成好的配置直接粘贴，跳过第 2 步。
 
 ### 第 1 步：导入覆写
 
@@ -146,9 +152,10 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 
 ### 第 3 步：启用并重启
 
-1. 左侧点 **「订阅」/「配置」**，在你的机场订阅上点编辑（或右键），找到 **覆写** 一栏，勾选刚才那份覆写，保存。
+1. 左侧点 **「订阅管理」**，在你的机场订阅卡片上点 **⋯ → 编辑信息**，找到 **覆写** 一栏，勾选刚才那份覆写，保存。（这一步最容易漏，不勾等于没装。）
 2. 左侧点 **「内核设置」**，点那个 **旋转箭头（重启内核）** 按钮。
 3. 确认首页的代理模式是 **规则（Rule）**，不是「全局」或「直连」。
+4. **系统代理** 保持打开（浏览器靠它走代理）。想让 Claude 桌面版、Claude Code 这类不认系统代理的软件也走，再打开 **虚拟网卡（TUN）**，第一次会要求授权。
 
 ### ⚠️ 以后别点“更新”这份覆写
 
@@ -156,7 +163,35 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 
 ---
 
-## 4. 安卓：FlClash
+## 4. Clash Verge Rev（Windows / Mac）
+
+> 最省事：打开[一键配置页](https://0xkaka.github.io/homeport/)，选好设备，软件选「Clash Verge Rev」，复制生成好的脚本直接粘贴。
+
+Clash Verge Rev 用「扩展脚本」，内容和安卓 FlClash 的脚本几乎一样，只是开头那行要写成 `function main(config, profileName) {`。
+
+1. 打开 Clash Verge Rev → 左侧 **「订阅」**，确认机场订阅已导入，并且现在能正常翻墙。
+2. 在机场订阅卡片上 **右键 → 「扩展脚本」**（没有这个菜单的话，用订阅页里的「全局扩展脚本」卡片 → 右键 → 编辑文件）。
+3. 把编辑框里原有内容**全部删掉**（Ctrl+A / ⌘A 全选），粘贴脚本：
+   - 用一键页：直接粘贴生成好的；
+   - 手动：复制 [`flclash/homeport.js`](flclash/homeport.js) 的全部内容，把 `const main = (config) => {` 改成 `function main(config, profileName) {`，最后一行 `};` 改成 `}`，再按 [安卓第 2 步](#第-2-步填住宅代理-1) 填好 `HOME` 里的四项。
+4. **保存**。回到「订阅」页，在机场订阅卡片上**点一下**（重新选中一次），让配置重新加载。
+5. 左侧 **「代理」**，顶部模式选 **规则**。
+6. 左侧 **「设置」** → 打开 **系统代理**。想让 Claude 桌面版、Claude Code 也走，再打开 **虚拟网卡模式（TUN）**，第一次会提示安装服务，点安装（Windows 需要管理员权限）。
+
+> ⚠️ Clash Verge Rev 的默认端口是 **7897**（不是 7890），下文检查和终端设置里的 `7890` 都换成 `7897`（以「设置 → 端口设置」里显示的为准）。
+
+### 我用的是 v2rayN
+
+v2rayN 做不到这种分流（它的路由只能选「代理 / 直连 / 拦截」），换成 Clash Verge Rev：
+
+1. 去 GitHub 搜 `clash-verge-rev`，在 Releases 里下载 Windows 安装包（文件名带 `x64-setup.exe`），安装。
+2. 把同一个机场订阅导进去：机场后台一般能直接复制「Clash 订阅」链接；或者在 v2rayN 的「订阅分组 → 订阅分组设置」里复制订阅地址。到 Clash Verge Rev 的「订阅」页粘贴 → 导入。
+3. **退出 v2rayN**（两个软件同时开会抢系统代理）。
+4. 按上面 1～6 步做。
+
+---
+
+## 5. 安卓：FlClash
 
 > FlClash 用的是一段 **JavaScript 脚本**，和 Mac 那份 YAML 不通用，别贴错。
 
@@ -207,9 +242,11 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 
 ---
 
-## 5. iPhone / iPad：Shadowrocket（小火箭）
+## 6. 小火箭 Shadowrocket（iPhone / iPad / Mac）
 
 小火箭分两部分：**节点**里填账号密码，**模块**里放规则。
+
+> 💻 **Mac 上用小火箭**（只有 M 芯片 Mac 能装）：步骤和 iPhone 一样。区别只有加节点那步——Mac 上没法扫自己屏幕上的码，用一键页的「复制节点链接」，再切到小火箭，一般会自动弹出「添加节点」；没弹就按第 2 步手动填。
 
 > ⚠️ **顺序很重要：先装模块，再加节点。** 整个过程中，首页**选中的节点**一直保持你平时用的机场节点，**不要点选 `🏠住宅出口-勿选`**。
 > `🏠住宅出口-勿选` 只给规则用；选中它会让所有流量都走住宅代理，GitHub 等网站可能打不开，模块就下载失败了。
@@ -264,25 +301,7 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 
 ---
 
-## Windows：Clash Verge Rev
-
-> 最省事：打开[一键配置页](https://0xkaka.github.io/homeport/)，切到「🪟 Windows」，复制生成好的脚本直接粘贴。
-> 用 Clash Party 的 Windows 版？步骤和 [Mac](#3-macclash-party) 完全一样。
-
-Clash Verge Rev 用「扩展脚本」，内容和安卓 FlClash 的脚本几乎一样，只是开头那行要写成 `function main(config, profileName) {`。
-
-1. 打开 Clash Verge Rev → 左侧 **「订阅」**，确认机场订阅已导入并选中。
-2. 在机场订阅卡片上 **右键 → 「扩展脚本」**（或者用订阅页里的「全局扩展脚本」卡片 → 右键 → 编辑文件）。
-3. 删掉原有内容，粘贴脚本：
-   - 用一键页：直接粘贴生成好的；
-   - 手动：复制 [`flclash/homeport.js`](flclash/homeport.js) 的全部内容，把 `const main = (config) => {` 改成 `function main(config, profileName) {`，最后一行 `};` 改成 `}`，再按 [安卓第 2 步](#第-2-步填住宅代理-1) 填好 `HOME` 里的四项。
-4. 保存 → 左侧 **「代理」**，模式选 **规则**；回订阅页重新点选一次订阅，让配置重新加载。
-
-> ⚠️ Clash Verge Rev 的默认端口是 **7897**，下文检查和终端设置里的 `7890` 都换成 `7897`（以「设置 → 端口设置」里显示的为准）。
-
----
-
-## 6. 检查是否成功
+## 7. 检查是否成功
 
 **目标：所有设备看到的 IP 一模一样，而且就是你住宅代理的 IP。**
 
@@ -296,29 +315,39 @@ https://ipv4.webshare.io/
 
 页面上只有一行 IP。和住宅代理后台显示的 IP 对一下。
 
-### Mac
+### 电脑
 
-打开「终端」，粘贴回车：
+先用浏览器打开 `https://ipv4.webshare.io/` 看一眼（用 Chrome 的先按 [第 8 节](#8-claude-code终端chrome-的额外设置) 关掉 QUIC）。再用终端确认：
+
+**Mac（Clash Party / Clash Verge Rev）**：打开「终端」，粘贴回车：
 
 ```bash
 curl -x http://127.0.0.1:7890 https://ipv4.webshare.io/
 ```
 
+**Windows**：打开 PowerShell，粘贴回车（注意是 `curl.exe`，PowerShell 里直接写 `curl` 会报错）：
+
+```powershell
+curl.exe -x http://127.0.0.1:7897 https://ipv4.webshare.io/
+```
+
+**Mac 上用小火箭**：小火箭是 VPN 模式，终端一般也会走，直接运行 `curl https://ipv4.webshare.io/`。
+
 输出的 IP 应该和手机上一样。
 
-> `7890` 是 Clash Party 默认端口。如果你改过，到 Clash Party 首页 / 设置里看“混合端口（Mixed Port）”是多少，替换掉。
+> 端口：Clash Party 默认 `7890`，Clash Verge Rev 默认 `7897`。改过的话，到软件设置里看“混合端口（Mixed Port）”是多少，替换掉。
 
 ### 不一样怎么办？
 
-看 [8. 常见问题](#8-常见问题)。
+看 [9. 常见问题](#9-常见问题)。
 
 ---
 
-## 7. Claude Code、终端、Chrome 的额外设置
+## 8. Claude Code、终端、Chrome 的额外设置
 
 ### Chrome：关闭 QUIC
 
-Chrome 会用 QUIC（基于 UDP）偷偷绕过代理，导致 IP 不一致。
+Chrome 会用 QUIC（基于 UDP）偷偷绕过代理，导致 IP 不一致。Mac 和 Windows 上的 Chrome 都要关。
 
 1. 地址栏输入 `chrome://flags/#enable-quic`，回车。
 2. 把 **Experimental QUIC protocol** 改成 **Disabled**。
@@ -326,7 +355,9 @@ Chrome 会用 QUIC（基于 UDP）偷偷绕过代理，导致 IP 不一致。
 
 ### 终端 / Claude Code：手动指定代理
 
-终端里的程序（包括 Claude Code、git、npm）**不会自动走系统代理**。
+终端里的程序（包括 Claude Code、git、npm）**不会自动走系统代理**。最简单的办法是在代理软件里打开 **TUN / 虚拟网卡**，所有程序都会走；不想开 TUN，就按下面设环境变量。
+
+**Mac：**
 
 1. 终端里运行 `open ~/.zshrc`（没有这个文件就先运行 `touch ~/.zshrc`）。
 2. 在文件末尾加上这三行，保存：
@@ -351,7 +382,7 @@ $env:HTTPS_PROXY="http://127.0.0.1:7897"
 
 ---
 
-## 8. 常见问题
+## 9. 常见问题
 
 **Q：Claude / Google 全打不开了。**
 A：基本是住宅代理没填对。逐项检查：
@@ -360,41 +391,42 @@ A：基本是住宅代理没填对。逐项检查：
 - 小火箭的节点备注是不是正好 `🏠住宅出口-勿选`；
 - 住宅代理有没有到期 / 流量用完（去服务商后台看）。
 
-**Q：Clash Party / FlClash 报错，配置加载失败。**
+**Q：Clash Party / Clash Verge Rev / FlClash 报错，配置加载失败。**
 A：
 - 改 YAML 时缩进被弄乱了，或者引号少了一个。最稳的办法：删掉这份覆写，重新导入，只改那四个值。
 - 机场节点名里没有任何地区字样，跳板组 `HP_Relay` 是空的。见下一条。
 
-**Q：我的机场节点名字没有“日本 / 美国”这些字，怎么办？**
-A：打开覆写（或脚本），找到 `filter:`（FlClash 里是 `RELAY_FILTER`），把你节点名里的关键字加进括号里，用 `|` 隔开。例如节点叫 `Tokyo-01`、`LA-02`，就在最后加上 `|Tokyo|LA`。
+**Q：我的机场节点名字对不上，跳板一个都没选上，怎么办？**
+A：现在已经认中文名、英文名、常见城市名、机场代码和国旗（比如 `🇯🇵 东京 01`、`Tokyo-01`、`洛杉矶 02`、`US-LA` 都能认）。还是对不上的话，打开覆写（或脚本），找到 `filter:`（FlClash / Clash Verge Rev 里是 `RELAY_FILTER`），把你节点名里的关键字加进最外层括号里，用 `|` 隔开，例如加上 `|Frankfurt|德国`。注意：香港节点是故意排除的。
 
 **Q：页面能打开，但时不时断线 / 很慢。**
 A：多半是跳板节点质量差。
-- Mac / 安卓：`HP_Relay` 每 5 分钟会自动测速换最快的，一般会自己恢复。也可以在 `exclude-filter` 里加关键字，排除某些烂节点。
+- 电脑 / 安卓：`HP_Relay` 每 5 分钟会自动测速换最快的，一般会自己恢复。也可以在 `exclude-filter` 里加关键字，排除某些烂节点。
 - iPhone：回到 `🏠住宅出口-勿选` 的 ⓘ →「代理通过」换一个节点。
 
 **Q：所有跳板都挂了，想先凑合用。**
 A：
-- Mac：覆写里把 `dialer-proxy: HP_Relay` 改成 `dialer-proxy: DIRECT`，并删掉 `proxy-groups+:` 那一整段。
-- 安卓：脚本里把 `"dialer-proxy": RELAY` 改成 `"dialer-proxy": "DIRECT"`。
-- iPhone：「代理通过」改成不选。
+- Clash Party：覆写里把 `dialer-proxy: HP_Relay` 改成 `dialer-proxy: DIRECT`，并删掉 `proxy-groups+:` 那一整段。
+- 安卓 / Clash Verge Rev：脚本里把 `"dialer-proxy": RELAY` 改成 `"dialer-proxy": "DIRECT"`。
+- 小火箭：「代理通过」改成不选。
 
 代价是直连住宅代理，可能会被干扰断线。
 
 **Q：手机和电脑的 IP 不一样。**
 A：
-- 三台设备填的是不是同一条住宅代理；
+- 每台设备填的是不是同一条住宅代理；
 - 小火箭全局路由是不是「配置」，Clash 是不是「规则」模式；
-- Mac 上 Chrome 的 QUIC 关了没。
+- 电脑上 Chrome 的 QUIC 关了没；
+- 电脑上的 Clash 系统代理开了没。
 
 **Q：规则更新了，我要怎么更新？**
 A：
-- iPhone：「配置」→「模块」→ 左滑 homeport → 更新。账号在节点里，不受影响。
-- Mac / 安卓：更新会冲掉你填的账号。先把四个值记好，更新（或重新导入）后再填一遍。
+- 小火箭：「配置」→「模块」→ 左滑 homeport → 更新。账号在节点里，不受影响。
+- 其他：最省事是回[一键配置页](https://0xkaka.github.io/homeport/)重新生成一份，覆盖粘贴。手动改的话先把四个值记好，更新（或重新导入）后再填一遍。
 
 ---
 
-## 9. 哪些网站会走住宅出口
+## 10. 哪些网站会走住宅出口
 
 | 类别 | 域名 / 规则 |
 | --- | --- |
@@ -411,7 +443,7 @@ A：
 
 ---
 
-## 10. 给维护者：修改规则
+## 11. 给维护者：修改规则
 
 三份文件要**同步修改**：
 

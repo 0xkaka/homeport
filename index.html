@@ -4,219 +4,431 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>homeport 一键配置</title>
+<meta name="description" content="填上住宅代理，自动生成 Clash Party / Clash Verge Rev / FlClash / 小火箭配置，让 Claude、Google 等网站固定走住宅 IP。">
 <style>
   :root {
-    --bg: #f6f7f9; --card: #fff; --text: #1d2129; --muted: #6b7280; --line: #e5e7eb;
-    --accent: #2563eb; --accent-soft: #eff4ff; --ok: #16a34a; --warn: #b45309; --warn-soft: #fff7ed;
-    --code: #f3f4f6;
+    --bg: #f4f5f7; --card: #ffffff; --text: #16181d; --muted: #646a76; --faint: #8b919c; --line: #e3e6eb;
+    --accent: #3355e0; --accent-ink: #ffffff; --accent-soft: #edf1ff; --accent-line: #c9d4ff;
+    --ok: #16803c; --ok-soft: #eaf7ee; --warn: #9a5b00; --warn-soft: #fff6e5; --warn-line: #f5dca8;
+    --err: #c62828; --err-soft: #fdeeee; --code: #f1f3f6; --shadow: 0 1px 2px rgba(16,24,40,.04), 0 4px 16px rgba(16,24,40,.05);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #0f1115; --card: #171a21; --text: #e5e7eb; --muted: #9ca3af; --line: #2a2f3a;
-      --accent: #60a5fa; --accent-soft: #1b2638; --ok: #4ade80; --warn: #fbbf24; --warn-soft: #2a2114;
-      --code: #0b0d12;
+      --bg: #0d0f13; --card: #15181e; --text: #e8eaee; --muted: #9aa1ad; --faint: #6f7682; --line: #262a33;
+      --accent: #7b96ff; --accent-ink: #0d0f13; --accent-soft: #1a2133; --accent-line: #2f3b5c;
+      --ok: #5fd08a; --ok-soft: #13261b; --warn: #f2bf5e; --warn-soft: #2a2213; --warn-line: #4a3a17;
+      --err: #ff8a80; --err-soft: #2c1616; --code: #0f1217; --shadow: none;
     }
   }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body { margin: 0; background: var(--bg); color: var(--text);
-    font: 15px/1.65 -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; }
-  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; }
-  h1 { font-size: 26px; margin: 8px 0 4px; }
-  .sub { color: var(--muted); margin: 0 0 20px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin: 16px 0; }
-  .step { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px;
-    border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: 14px; margin-right: 8px; }
-  h2 { font-size: 18px; margin: 0 0 12px; display: flex; align-items: center; }
-  label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
-  input, textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
-    background: var(--bg); color: var(--text); font: 15px ui-monospace, SFMono-Regular, Menlo, monospace; }
-  input:focus, textarea:focus { outline: 2px solid var(--accent); border-color: transparent; }
+    font: 15px/1.7 -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased; }
+  main { max-width: 800px; margin: 0 auto; padding: 0 16px 80px; }
+  a { color: var(--accent); }
+  code, pre, input, textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  code { background: var(--code); border: 1px solid var(--line); padding: 0 6px; border-radius: 6px; font-size: 13px; word-break: break-all; }
+  pre { background: var(--code); border: 1px solid var(--line); padding: 12px 14px; border-radius: 10px; overflow: auto;
+    max-height: 260px; font-size: 12px; line-height: 1.55; margin: 8px 0 0; }
+  .hidden { display: none !important; }
+  .muted { color: var(--muted); font-size: 13.5px; }
+
+  /* ---------- 顶部 ---------- */
+  header { padding: 40px 0 8px; }
+  .brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: .2px; color: var(--muted); font-size: 14px; }
+  .brand i { font-style: normal; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px;
+    background: var(--accent); color: var(--accent-ink); font-size: 14px; }
+  h1 { font-size: 30px; line-height: 1.3; margin: 14px 0 8px; letter-spacing: -.3px; }
+  .lead { color: var(--muted); margin: 0; font-size: 15.5px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; }
+  .badge { font-size: 12.5px; color: var(--muted); background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; }
+  .buy { display: flex; align-items: center; gap: 12px; margin: 20px 0 0; padding: 12px 16px; border-radius: 12px;
+    background: var(--card); border: 1px dashed var(--accent-line); color: var(--text); text-decoration: none; }
+  .buy:hover { border-style: solid; }
+  .buy span:first-child { font-size: 20px; }
+  .buy b { color: var(--accent); }
+  .buy .arrow { margin-left: auto; color: var(--accent); }
+
+  /* ---------- 进度条 ---------- */
+  .stepper { position: sticky; top: 0; z-index: 5; margin: 24px -16px 0; padding: 10px 16px;
+    background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+  .stepper ol { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 0; padding: 0; }
+  .stepper a { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--muted); font-size: 13.5px;
+    padding: 6px 4px; border-top: 3px solid var(--line); white-space: nowrap; overflow: hidden; }
+  .stepper a .n { flex: none; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
+    font-size: 12px; font-weight: 700; background: var(--line); color: var(--muted); }
+  .stepper a.done { border-top-color: var(--ok); color: var(--text); }
+  .stepper a.done .n { background: var(--ok); color: #fff; }
+  .stepper a.done .n::after { content: "✓"; }
+  .stepper a.done .n span { display: none; }
+  @media (max-width: 560px) { .stepper a .t { display: none; } .stepper a { justify-content: center; } }
+
+  /* ---------- 卡片 ---------- */
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin: 16px 0; box-shadow: var(--shadow); scroll-margin-top: 64px; }
+  @media (max-width: 560px) { .card { padding: 18px 16px; border-radius: 14px; } }
+  .card > h2 { display: flex; align-items: center; gap: 10px; font-size: 19px; margin: 0 0 4px; }
+  .card > h2 .n { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; flex: none;
+    background: var(--accent-soft); color: var(--accent); font-size: 14px; font-weight: 800; }
+  .card > .desc { color: var(--muted); margin: 0 0 16px; font-size: 14px; }
+  .card.pre { padding: 16px 20px; }
+  .card.pre summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; align-items: center; gap: 8px; }
+  .card.pre summary::-webkit-details-marker { display: none; }
+  .card.pre summary::after { content: "展开"; margin-left: auto; font-size: 13px; color: var(--accent); font-weight: 500; }
+  .card.pre details[open] summary::after { content: "收起"; }
+  .checklist { list-style: none; padding: 0; margin: 12px 0 0; }
+  .checklist li { padding: 8px 0 8px 30px; position: relative; border-top: 1px solid var(--line); font-size: 14px; }
+  .checklist li::before { content: "☐"; position: absolute; left: 4px; top: 7px; color: var(--accent); font-size: 16px; }
+
+  /* ---------- 表单 ---------- */
+  label.f { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin: 14px 0 6px; }
+  input[type=text], textarea { width: 100%; padding: 11px 13px; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--bg); color: var(--text); font-size: 14.5px; transition: border-color .15s, box-shadow .15s; }
+  input[type=text]:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  #raw { font-size: 15px; padding: 14px; min-height: 52px; resize: vertical; }
+  .formats { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
+  .formats code { font-size: 12px; color: var(--muted); }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
-  @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
-  button { cursor: pointer; border: 0; border-radius: 10px; padding: 10px 16px; font-size: 15px; font-weight: 600;
-    background: var(--accent); color: #fff; }
-  button.ghost { background: var(--accent-soft); color: var(--accent); }
-  button:disabled { opacity: .45; cursor: not-allowed; }
-  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-  .tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
-  .tab { background: var(--bg); color: var(--text); border: 1px solid var(--line); font-weight: 500; }
-  .tab[aria-selected="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
-  ol { padding-left: 22px; margin: 8px 0; } li { margin: 6px 0; }
-  code { background: var(--code); padding: 1px 6px; border-radius: 6px; font-size: 13px; word-break: break-all; }
-  pre { background: var(--code); padding: 12px; border-radius: 10px; overflow: auto; max-height: 220px; font-size: 12px; margin: 8px 0; }
-  .note { background: var(--warn-soft); color: var(--warn); border-radius: 10px; padding: 10px 12px; font-size: 14px; margin: 10px 0; }
-  .ok { color: var(--ok); font-size: 14px; }
-  .err { color: #dc2626; font-size: 14px; }
-  .hidden { display: none; }
-  #qr { background: #fff; padding: 12px; border-radius: 10px; display: inline-block; margin: 8px 0; }
-  .muted { color: var(--muted); font-size: 13px; }
-  .big { font-size: 16px; font-weight: 600; }
-  .buy { display: flex; gap: 10px; align-items: center; text-decoration: none; color: var(--text);
-    background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 12px; padding: 12px 14px; margin: 0 0 8px; }
-  .buy b { color: var(--accent); margin-right: 4px; }
-  .buy:hover { filter: brightness(1.05); }
-  #ruleBox { margin-top: 10px; }
-  #ruleBox > summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 14px; }
-  .proto { display: inline-flex; gap: 6px; align-items: center; margin: 0 14px 0 0; font-size: 15px; color: var(--text); cursor: pointer; }
-  .proto input { width: auto; accent-color: var(--accent); }
-  .chip { display: inline-block; font-size: 12px; background: var(--accent-soft); color: var(--accent);
-    border-radius: 999px; padding: 2px 10px; margin: 2px 4px 2px 0; }
-  .grp { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid var(--line); cursor: pointer; }
-  .grp:first-child { border-top: 0; }
-  .grp input { width: 18px; height: 18px; margin-top: 3px; flex: none; accent-color: var(--accent); }
-  .grp b { display: block; }
-  .grp small { color: var(--muted); font-size: 12px; word-break: break-all; }
-  .tag { font-size: 11px; background: var(--accent-soft); color: var(--accent); border-radius: 6px; padding: 1px 6px; margin-left: 6px; font-weight: 500; }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+  details.manual { margin-top: 14px; }
+  details.manual > summary, details.more > summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 14px; }
+
+  .seg { display: inline-flex; padding: 3px; gap: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 11px; flex-wrap: wrap; }
+  .seg button, .seg label { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 14px; font-weight: 600;
+    padding: 7px 16px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg button[aria-pressed="true"], .seg label:has(input:checked) { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  .seg.big { display: grid; grid-template-columns: repeat(4, 1fr); width: 100%; }
+  .seg.big button { justify-content: center; padding: 10px 6px; flex-direction: column; gap: 2px; font-size: 13.5px; }
+  .seg.big button .ic { font-size: 20px; line-height: 1.2; }
+  .protoRow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin-top: 14px; }
+  .protoRow .muted { flex: 1; min-width: 200px; }
+
+  .parsed { margin-top: 14px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .parsed .head { padding: 10px 14px; font-weight: 600; font-size: 14px; }
+  .parsed.ok .head { background: var(--ok-soft); color: var(--ok); }
+  .parsed.bad .head { background: var(--err-soft); color: var(--err); }
+  .parsed.idle .head { background: var(--bg); color: var(--muted); font-weight: 500; }
+  .parsed dl { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0; }
+  .parsed dl div { padding: 10px 14px; border-top: 1px solid var(--line); min-width: 0; }
+  .parsed dl div + div { border-left: 1px solid var(--line); }
+  .parsed dt { font-size: 12px; color: var(--faint); }
+  .parsed dd { margin: 0; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @media (max-width: 560px) { .parsed dl { grid-template-columns: 1fr 1fr; } .parsed dl div:nth-child(3) { border-left: 0; } }
+
+  /* ---------- 规则 ---------- */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 12.5px; background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 3px 11px; }
+  details.more { margin-top: 14px; }
+  .groups { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  @media (max-width: 560px) { .groups { grid-template-columns: 1fr; } }
+  .grp { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; transition: border-color .15s, background .15s; }
+  .grp:has(input:checked) { border-color: var(--accent-line); background: var(--accent-soft); }
+  .grp input { appearance: none; -webkit-appearance: none; flex: none; width: 36px; height: 21px; margin: 2px 0 0; border-radius: 999px; background: var(--line); position: relative; cursor: pointer; transition: background .15s; }
+  .grp input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 17px; height: 17px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .15s; }
+  .grp input:checked { background: var(--accent); }
+  .grp input:checked::after { transform: translateX(15px); }
+  .grp b { display: block; font-size: 14px; }
+  .grp small { color: var(--muted); font-size: 12px; word-break: break-all; line-height: 1.5; display: block; }
+  .tag { font-size: 11px; color: var(--faint); border: 1px solid var(--line); border-radius: 6px; padding: 0 5px; margin-left: 6px; font-weight: 500; }
+
+  /* ---------- 设备 / 软件 ---------- */
+  .apps { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 16px 0 4px; }
+  .apps .muted { margin-right: 2px; }
+  .app { border: 1px solid var(--line); background: var(--card); color: var(--text); font: inherit; font-size: 14px; font-weight: 600;
+    border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+  .app small { font-weight: 500; color: var(--faint); margin-left: 4px; }
+  .app[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: var(--accent-ink); }
+  .app[aria-pressed="true"] small { color: inherit; opacity: .8; }
+  .panel { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 18px; }
+  .panel h3 { font-size: 17px; margin: 0 0 2px; }
+  .panel .before { font-size: 13.5px; color: var(--muted); background: var(--bg); border-radius: 10px; padding: 10px 14px; margin: 12px 0 0; }
+  .panel .before b { color: var(--text); }
+
+  ol.steps { list-style: none; counter-reset: s; padding: 0; margin: 16px 0 0; }
+  ol.steps > li { counter-increment: s; position: relative; padding: 0 0 18px 42px; }
+  ol.steps > li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%;
+    display: grid; place-items: center; font-weight: 700; font-size: 13.5px; background: var(--card); color: var(--accent); border: 2px solid var(--accent-line); }
+  ol.steps > li::after { content: ""; position: absolute; left: 14px; top: 32px; bottom: 4px; width: 2px; background: var(--line); }
+  ol.steps > li:last-child { padding-bottom: 0; }
+  ol.steps > li:last-child::after { display: none; }
+  ol.steps > li > b:first-child { display: block; font-size: 15px; margin-bottom: 2px; }
+  ol.steps p { margin: 4px 0; }
+  .path { display: inline; font-weight: 600; }
+  .path i { font-style: normal; color: var(--faint); margin: 0 3px; font-weight: 400; }
+
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 2px; }
+  button.btn { cursor: pointer; border: 1px solid transparent; border-radius: 10px; padding: 10px 18px; font: inherit; font-size: 14.5px; font-weight: 700;
+    background: var(--accent); color: var(--accent-ink); transition: filter .15s, transform .05s; }
+  button.btn:hover:not(:disabled) { filter: brightness(1.07); }
+  button.btn:active:not(:disabled) { transform: translateY(1px); }
+  button.btn.ghost { background: var(--card); color: var(--accent); border-color: var(--accent-line); }
+  button.btn.done { background: var(--ok); color: #fff; border-color: transparent; }
+  button.btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  .note { border-radius: 10px; padding: 10px 14px; font-size: 13.5px; margin: 10px 0 0; border: 1px solid; }
+  .note.warn { background: var(--warn-soft); color: var(--warn); border-color: var(--warn-line); }
+  .note.info { background: var(--accent-soft); color: var(--text); border-color: var(--accent-line); }
+  .note b { color: inherit; }
+  .qrbox { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+  #qr { background: #fff; padding: 10px; border-radius: 12px; border: 1px solid var(--line); min-width: 120px; min-height: 120px; display: grid; place-items: center; }
+  #qr img, #qr canvas { display: block; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 8px 0 0; font-size: 14px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; }
+
+  /* ---------- 检查 ---------- */
+  .check { display: grid; gap: 10px; }
+  .check > div { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .check h4 { margin: 0 0 4px; font-size: 14.5px; }
+  footer { text-align: center; color: var(--faint); font-size: 13px; margin-top: 32px; }
+  #toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+    background: var(--text); color: var(--bg); padding: 9px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; transition: all .2s; z-index: 10; }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
 </style>
 </head>
 <body>
 <main>
-  <h1>homeport 一键配置</h1>
-  <p class="sub">填上你的住宅代理，这个页面直接生成可用的配置，复制粘贴就能用。<br>
-  <b>所有处理都在你自己的浏览器里完成，账号密码不会上传到任何地方。</b></p>
-  <a class="buy" href="https://x.com/0xjackkk/status/2117862295397335283" target="_blank" rel="noopener">
-    <span>🛒</span><span><b>还没有住宅 IP？</b>看这篇：便宜静态住宅 IP 购买教程 →</span></a>
+  <header>
+    <div class="brand"><i>⌂</i>homeport</div>
+    <h1>让 Claude、Google 只看到<br>你的一个住宅 IP</h1>
+    <p class="lead">填上住宅代理，选好设备，复制粘贴到你的代理软件里。敏感网站固定走住宅 IP，其他网站照常走机场。</p>
+    <div class="badges">
+      <span class="badge">🔒 全部在你的浏览器里处理，不上传</span>
+      <span class="badge">💻 Mac · Windows · 📱 iPhone · iPad · 安卓</span>
+      <span class="badge"><a href="https://github.com/0xkaka/homeport" target="_blank" rel="noopener">详细教程 / 源码</a></span>
+    </div>
+    <a class="buy" href="https://x.com/0xjackkk/status/2117862295397335283" target="_blank" rel="noopener">
+      <span>🛒</span><span><b>还没有住宅 IP？</b> 看这篇：便宜静态住宅 IP 购买教程</span><span class="arrow">→</span></a>
+  </header>
 
-  <section class="card">
-    <h2><span class="step">1</span>粘贴住宅代理信息</h2>
-    <p class="muted" style="margin:0 0 6px">没有的话先买一条：<a href="https://x.com/0xjackkk/status/2117862295397335283" target="_blank" rel="noopener">便宜住宅 IP 购买教程</a></p>
-    <p class="muted" style="margin:0">服务商后台给你的那一串，直接整串粘进来就行。支持这些格式：<br>
-      <code>地址:端口:用户名:密码</code>　<code>用户名:密码@地址:端口</code>　<code>http://用户名:密码@地址:端口</code></p>
-    <label for="raw">整串粘贴（推荐）</label>
-    <input id="raw" placeholder="例如 p.webshare.io:80:abcd1234-1:xyz789" autocomplete="off" spellcheck="false">
-    <p class="muted" style="margin:8px 0 0">或者分开填：</p>
-    <div class="grid">
-      <div><label for="host">地址</label><input id="host" placeholder="域名，如 p.webshare.io" autocomplete="off" spellcheck="false"></div>
-      <div><label for="port">端口</label><input id="port" inputmode="numeric" autocomplete="off"></div>
-      <div><label for="user">用户名</label><input id="user" autocomplete="off" spellcheck="false"></div>
-      <div><label for="pass">密码</label><input id="pass" autocomplete="off" spellcheck="false"></div>
-    </div>
-    <label>协议（后台写的是哪个就选哪个；不确定先选 HTTP，不通再换 SOCKS5）</label>
-    <div class="row" style="margin-top:0" id="protoBox">
-      <label class="proto"><input type="radio" name="proto" value="http" checked> HTTP</label>
-      <label class="proto"><input type="radio" name="proto" value="socks5"> SOCKS5</label>
-    </div>
-    <p id="status" class="muted"></p>
+  <nav class="stepper" aria-label="进度">
+    <ol>
+      <li><a href="#s1" id="st1"><span class="n"><span>1</span></span><span class="t">填住宅代理</span></a></li>
+      <li><a href="#s2" id="st2"><span class="n"><span>2</span></span><span class="t">选网站</span></a></li>
+      <li><a href="#s3" id="st3"><span class="n"><span>3</span></span><span class="t">导入软件</span></a></li>
+      <li><a href="#s4" id="st4"><span class="n"><span>4</span></span><span class="t">检查</span></a></li>
+    </ol>
+  </nav>
+
+  <section class="card pre">
+    <details>
+      <summary>✅ 开始前，先确认这 3 件事</summary>
+      <ul class="checklist">
+        <li><b>有机场，而且现在能正常翻墙。</b>homeport 要借机场的节点当跳板。节点名里要有台湾 / 日本 / 新加坡 / 美国 / 韩国（或它们的城市名、英文名、国旗），<b>只有香港节点的机场不行</b>。</li>
+        <li><b>买好了一条静态住宅代理</b>（HTTP 或 SOCKS5），手里有：地址、端口、用户名、密码。</li>
+        <li><b>装好了代理软件，并且机场订阅已经导入：</b>Mac 用 Clash Party / Clash Verge Rev / 小火箭；Windows 用 Clash Verge Rev / Clash Party；iPhone、iPad 用小火箭；安卓用 FlClash。</li>
+      </ul>
+    </details>
   </section>
 
-  <section class="card">
-    <h2><span class="step">2</span>选哪些网站走住宅出口</h2>
-    <p class="muted" style="margin:0">不懂就保持默认，直接看第 3 步。</p>
-    <p id="selSummary" style="margin:8px 0 0"></p>
-    <details id="ruleBox">
+  <!-- ============ 1 ============ -->
+  <section class="card" id="s1">
+    <h2><span class="n">1</span>粘贴住宅代理信息</h2>
+    <p class="desc">服务商后台给你的那一串，整串粘进来，会自动识别。</p>
+    <textarea id="raw" rows="1" placeholder="例如 p.webshare.io:80:abcd1234-1:xyz789" autocomplete="off" spellcheck="false"></textarea>
+    <div class="formats"><code>地址:端口:用户名:密码</code><code>用户名:密码@地址:端口</code><code>socks5://用户名:密码@地址:端口</code></div>
+
+    <div class="protoRow">
+      <div class="seg" id="protoBox" role="radiogroup" aria-label="协议">
+        <label><input type="radio" name="proto" value="http" checked>HTTP</label>
+        <label><input type="radio" name="proto" value="socks5">SOCKS5</label>
+      </div>
+      <span class="muted">后台写的是哪个就选哪个；不确定先选 HTTP，不通再换 SOCKS5。</span>
+    </div>
+
+    <div class="parsed idle" id="parsed">
+      <div class="head" id="status">等你粘贴…</div>
+      <dl id="parsedList" class="hidden">
+        <div><dt>地址</dt><dd id="pv-host"></dd></div>
+        <div><dt>端口</dt><dd id="pv-port"></dd></div>
+        <div><dt>用户名</dt><dd id="pv-user"></dd></div>
+        <div><dt>密码</dt><dd id="pv-pass"></dd></div>
+      </dl>
+    </div>
+    <div id="ipWarn" class="note warn hidden"></div>
+
+    <details class="manual" id="manual">
+      <summary>手动填写 / 修改</summary>
+      <div class="grid">
+        <div><label class="f" for="host">地址</label><input type="text" id="host" placeholder="域名，如 p.webshare.io" autocomplete="off" spellcheck="false"></div>
+        <div><label class="f" for="port">端口</label><input type="text" id="port" inputmode="numeric" autocomplete="off"></div>
+        <div><label class="f" for="user">用户名</label><input type="text" id="user" autocomplete="off" spellcheck="false"></div>
+        <div><label class="f" for="pass">密码</label><input type="text" id="pass" autocomplete="off" spellcheck="false"></div>
+      </div>
+      <p class="muted" style="margin:10px 0 0">Webshare 这类服务商后台有两个地址：<b>Proxy Address</b>（如 <code>p.webshare.io</code>）和 <b>Assigned IP</b>（出口 IP）。<b>填 Proxy Address</b>，Assigned IP 是用来最后核对的。</p>
+    </details>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="card" id="s2">
+    <h2><span class="n">2</span>选哪些网站走住宅 IP</h2>
+    <p class="desc">不懂就保持默认，直接看第 3 步。</p>
+    <div class="chips" id="selSummary"></div>
+    <details class="more" id="ruleBox">
       <summary>修改 / 添加网站</summary>
-      <p class="muted" style="margin:8px 0 0">打勾的走住宅代理，没勾的照常走机场。</p>
-      <div id="groups"></div>
-      <label for="custom">自己加（一行一个域名，比如 <code>example.com</code> 会包含它的所有子域名）</label>
+      <div class="groups" id="groups"></div>
+      <label class="f" for="custom">自己加（一行一个域名，<code>example.com</code> 会包含它的所有子域名）</label>
       <textarea id="custom" rows="3" placeholder="example.com&#10;another.net" spellcheck="false"></textarea>
       <p class="muted" style="margin:6px 0 0">高级：也可以写整条规则，如 <code>DOMAIN-KEYWORD,openai</code>、<code>IP-CIDR,1.2.3.0/24</code>，策略会自动补上。</p>
     </details>
-    <p id="ruleStat" class="muted" style="margin:6px 0 0"></p>
+    <p id="ruleStat" class="muted" style="margin:10px 0 0"></p>
   </section>
 
-  <section class="card" id="out">
-    <h2><span class="step">3</span>选你的设备，照着做</h2>
-    <div class="tabs" role="tablist">
-      <button class="tab" role="tab" data-t="mac" aria-selected="true">💻 Mac</button>
-      <button class="tab" role="tab" data-t="win" aria-selected="false">🪟 Windows</button>
-      <button class="tab" role="tab" data-t="android" aria-selected="false">🤖 安卓</button>
-      <button class="tab" role="tab" data-t="ios" aria-selected="false">📱 iPhone / iPad</button>
+  <!-- ============ 3 ============ -->
+  <section class="card" id="s3">
+    <h2><span class="n">3</span>选设备和软件，照着做</h2>
+    <p class="desc">已按你的设备自动选好，不对就手动点。</p>
+    <div class="seg big" role="group" aria-label="设备">
+      <button data-dev="mac"><span class="ic">💻</span>Mac</button>
+      <button data-dev="win"><span class="ic">🪟</span>Windows</button>
+      <button data-dev="ios"><span class="ic">📱</span>iPhone / iPad</button>
+      <button data-dev="android"><span class="ic">🤖</span>安卓</button>
+    </div>
+    <div class="apps" id="apps"></div>
+
+    <!-- Clash Party -->
+    <div class="panel" data-app="party">
+      <h3>Clash Party</h3>
+      <p class="before"><b>开始前：</b>Clash Party 已装好，机场订阅已导入，现在能正常翻墙。</p>
+      <ol class="steps">
+        <li><b>复制配置</b>
+          <div class="btns"><button class="btn" data-copy="mac">复制配置</button><button class="btn ghost" data-dl="mac">或下载 homeport.yaml</button></div></li>
+        <li><b>新建覆写</b>
+          <p>左侧 <span class="path">覆写</span> → 右上角 <span class="path">＋</span> → <span class="path">新建 YAML</span>。把编辑框里原有的内容<b>全部删掉</b>，粘贴，保存。</p>
+          <p class="muted">下载了文件的话，也可以在 ＋ 里选「导入」，选 homeport.yaml。</p></li>
+        <li><b>挂到机场订阅上</b>
+          <p>左侧 <span class="path">订阅管理</span> → 机场订阅卡片右上角 <span class="path">⋯<i>›</i>编辑信息</span> → <span class="path">覆写</span> 里<b>勾选 homeport</b> → 保存。</p>
+          <div class="note warn">这一步最容易漏：不勾选，等于没装。</div></li>
+        <li><b>重启生效</b>
+          <p>左侧 <span class="path">内核设置</span> → 点重启（旋转箭头）。首页代理模式选 <b>规则</b>，<b>系统代理</b> 保持打开。</p>
+          <p class="muted">想让 Claude 桌面版、Claude Code 这类不认系统代理的软件也走：再打开 <b>虚拟网卡（TUN）</b>，第一次会要求授权，点允许。</p></li>
+      </ol>
+      <p class="muted">以后别点这份覆写的「更新」，否则会变回没填账号的模板。</p>
+      <details class="more"><summary>看一眼生成的内容</summary><pre id="pre-mac"></pre></details>
     </div>
 
-    <div data-p="mac">
-      <p class="big">Clash Party</p>
-      <div class="row">
-        <button data-copy="mac">① 复制配置</button>
-        <button class="ghost" data-dl="mac">或下载 homeport.yaml</button>
+    <!-- Clash Verge Rev -->
+    <div class="panel" data-app="verge">
+      <h3>Clash Verge Rev</h3>
+      <p class="before"><b>开始前：</b>Clash Verge Rev 已装好，机场订阅已导入，现在能正常翻墙。</p>
+      <ol class="steps">
+        <li><b>复制脚本</b>
+          <div class="btns"><button class="btn" data-copy="win">复制脚本</button></div></li>
+        <li><b>打开扩展脚本</b>
+          <p>左侧 <span class="path">订阅</span> → 在你的机场订阅卡片上 <b>右键</b> → <span class="path">扩展脚本</span>。</p>
+          <p class="muted">没有这个菜单？用订阅页里的「全局扩展脚本」卡片 → 右键 → 编辑文件，效果一样。</p></li>
+        <li><b>粘贴并保存</b>
+          <p>把编辑框里原有的内容<b>全部删掉</b>（<span data-os="mac">⌘A</span><span data-os="win">Ctrl+A</span> 全选再删），粘贴刚才复制的脚本 → <b>保存</b>。</p></li>
+        <li><b>让配置生效</b>
+          <p>回到 <span class="path">订阅</span>，在机场订阅卡片上<b>点一下</b>（重新选中一次）。再到 <span class="path">代理</span> 页，顶部模式选 <b>规则</b>。</p></li>
+        <li><b>打开系统代理</b>
+          <p><span class="path">设置</span> → 打开 <b>系统代理</b>（浏览器靠它走代理）。</p>
+          <p class="muted">想让 Claude 桌面版、Claude Code 也走：再打开 <b>虚拟网卡模式（TUN）</b>。第一次会提示安装服务，点安装<span data-os="win">（需要管理员权限）</span>。</p></li>
+      </ol>
+      <div class="note info">Clash Verge Rev 的默认端口是 <b>7897</b>（不是 7890），终端检查时用 7897。</div>
+      <details class="more"><summary>看一眼生成的内容</summary><pre id="pre-win"></pre></details>
+    </div>
+
+    <!-- v2rayN -->
+    <div class="panel" data-app="v2rayn">
+      <h3>v2rayN</h3>
+      <div class="note warn"><b>v2rayN 做不到这种分流。</b>它的路由规则只能选「代理 / 直连 / 拦截」三种，没法把 Claude 单独指到住宅节点、再让住宅节点经过机场跳板。</div>
+      <ol class="steps">
+        <li><b>装 Clash Verge Rev</b>
+          <p>去 GitHub 搜 <code>clash-verge-rev</code>，在 Releases 里下载 Windows 安装包（文件名带 <code>x64-setup.exe</code>）安装。</p></li>
+        <li><b>把同一个机场订阅导进去</b>
+          <p>在 v2rayN 的 <span class="path">订阅分组<i>›</i>订阅分组设置</span> 里复制订阅地址；到 Clash Verge Rev 的 <span class="path">订阅</span> 页粘贴 → 导入。</p>
+          <p class="muted">一般机场后台也能直接复制「Clash 订阅」链接，用那个更好。</p></li>
+        <li><b>退出 v2rayN</b>
+          <p>两个软件同时开会抢系统代理，用 Clash Verge Rev 时把 v2rayN 退出。</p></li>
+        <li><b>按 Clash Verge Rev 的步骤做</b>
+          <div class="btns"><button class="btn" data-goapp="verge">切到 Clash Verge Rev 步骤 →</button></div></li>
+      </ol>
+    </div>
+
+    <!-- FlClash -->
+    <div class="panel" data-app="flclash">
+      <h3>FlClash</h3>
+      <p class="before"><b>开始前：</b>FlClash 版本 ≥ 0.8.85，机场订阅已导入，现在能正常翻墙。</p>
+      <ol class="steps">
+        <li><b>复制脚本</b>
+          <div class="btns"><button class="btn" data-copy="android">复制脚本</button></div></li>
+        <li><b>添加脚本</b>
+          <p><span class="path">工具<i>›</i>进阶配置<i>›</i>脚本</span> → 右下 <span class="path">＋</span>。名字填 <code>homeport</code>，内容粘贴，保存。</p></li>
+        <li><b>在订阅里选中脚本</b>
+          <p><span class="path">配置</span> → 机场订阅右侧的 <span class="path">⋮<i>›</i>覆写</span> → 模式选 <b>脚本</b> → 选中 homeport。</p>
+          <div class="note warn">这一步最容易漏：不在订阅里选中脚本，等于没装。</div></li>
+        <li><b>重新连接</b>
+          <p>回 <span class="path">仪表盘</span>，关掉再打开连接。</p></li>
+      </ol>
+      <details class="more"><summary>看一眼生成的内容</summary><pre id="pre-android"></pre></details>
+    </div>
+
+    <!-- Shadowrocket -->
+    <div class="panel" data-app="sr">
+      <h3>小火箭 Shadowrocket <span class="muted" data-os="mac">（Mac 版，M 芯片 Mac 才能装）</span></h3>
+      <div class="note warn"><b>全程不要点选 🏠住宅出口-勿选 这个节点。</b>首页选中的一直是你平时用的机场节点。它只给规则用，选中它会让所有网站都走住宅代理。</div>
+      <ol class="steps">
+        <li><b>装规则模块（趁现在网络正常先装）</b>
+          <p>底部 <span class="path">配置<i>›</i>模块</span> → 右上角 <span class="path">＋</span>，粘贴模块链接 → 下载。</p>
+          <div class="btns"><button class="btn ghost" data-copy="iosmod">复制模块链接</button></div>
+          <div id="iosCustom" class="hidden">
+            <div class="note info">你改过第 2 步的网站选择，要把模块换成你的版本：模块列表里点开 homeport → 编辑 → 全选删掉 → 粘贴下面的内容 → 保存。以后别点这个模块的「更新」。</div>
+            <div class="btns"><button class="btn" data-copy="iostext">复制我的模块内容</button></div>
+            <details class="more"><summary>看一眼</summary><pre id="pre-ios"></pre></details>
+          </div></li>
+        <li><b>加住宅节点</b>
+          <div data-os="ios">
+            <p><b>方法 A：扫码。</b>用另一台设备打开本页，小火箭首页左上角扫码图标扫下面的码。在手机上看本页的话，点「复制节点链接」再打开小火箭，一般会自动弹出「添加节点」。</p>
+            <div class="qrbox"><div id="qr"></div>
+              <div class="btns"><button class="btn" data-copy="iosnode">复制节点链接</button></div></div>
+          </div>
+          <div data-os="mac">
+            <p><b>方法 A：复制链接。</b>点下面按钮，再切到小火箭，一般会自动弹出「添加节点」。没弹出来就用方法 B。</p>
+            <div class="btns"><button class="btn" data-copy="iosnode">复制节点链接</button></div>
+          </div>
+          <p style="margin-top:12px"><b>方法 B：手动。</b>首页右上角 <span class="path">＋</span>，类型选 <b id="m-type">HTTP</b>，照下面填：</p>
+          <dl class="kv">
+            <dt>地址</dt><dd><code id="m-host">（先填第 1 步）</code></dd>
+            <dt>端口</dt><dd><code id="m-port">-</code></dd>
+            <dt>用户</dt><dd><code id="m-user">-</code></dd>
+            <dt>密码</dt><dd><code id="m-pass">-</code></dd>
+            <dt>备注</dt><dd><code>🏠住宅出口-勿选</code> <button class="btn ghost" style="padding:2px 10px;font-size:13px" data-copy="remark">复制</button></dd>
+          </dl>
+          <div class="note warn">备注必须一字不差（带房子图标），建议点「复制」。加完如果名字前出现<b>橙色圆点</b>，说明被选中了，<b>马上点回机场节点</b>。</div></li>
+        <li><b>设跳板</b>
+          <p>点 🏠住宅出口-勿选 右边的 <span class="path">ⓘ</span> → <span class="path">代理通过</span> → 选一个台湾 / 日本 / 新加坡 / 美国 / 韩国的机场节点 → 保存。</p>
+          <p class="muted">设好后节点下面显示类似 <code>HTTP / 跳板名 &gt; SHADOWSOCKS</code> 是正常的。测速显示「超时」不代表不能用，以第 4 步的结果为准。</p></li>
+        <li><b>切到配置模式</b>
+          <p>首页 <span class="path">全局路由</span> 选 <b>配置</b>，选中的节点是<b>机场节点</b>，打开开关。</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="card" id="s4">
+    <h2><span class="n">4</span>检查是否成功</h2>
+    <p class="desc">每台设备看到的 IP 都应该<b>一模一样</b>，并且就是你住宅代理的 IP<span id="hostHint"></span>。</p>
+    <div class="check">
+      <div>
+        <h4>🌐 浏览器</h4>
+        <p style="margin:0">打开 <a href="https://ipv4.webshare.io/" target="_blank" rel="noopener">ipv4.webshare.io</a>，页面上只有一行 IP。</p>
+        <p class="muted" data-dev-only="mac win" style="margin:6px 0 0">用 Chrome 的话还要关 QUIC：地址栏打开 <code>chrome://flags/#enable-quic</code> → 选 Disabled → 点 Relaunch。</p>
       </div>
-      <ol>
-        <li>打开 Clash Party → 左侧 <b>「覆写」</b> → 右上角 <b>＋ 新建</b>（或导入本地文件，选刚下载的 <code>homeport.yaml</code>）。</li>
-        <li>如果是新建：把内容<b>全部删掉</b>，粘贴刚才复制的配置，保存。</li>
-        <li>左侧 <b>「订阅」</b> → 在机场订阅上点编辑 → 覆写里<b>勾选</b>这份 → 保存。</li>
-        <li>左侧 <b>「内核设置」</b> → 点旋转箭头重启。首页模式选 <b>规则</b>。</li>
-      </ol>
-      <details><summary class="muted">看一眼生成的内容</summary><pre id="pre-mac"></pre></details>
-    </div>
-
-    <div data-p="win" class="hidden">
-      <p class="big">Clash Verge Rev（推荐）</p>
-      <div class="row"><button data-copy="win">① 复制脚本</button>
-        <button class="ghost" data-dl="win">或下载 homeport-verge.js</button></div>
-      <ol>
-        <li>打开 Clash Verge Rev → 左侧 <b>「订阅」</b>，确认机场订阅已导入并选中。</li>
-        <li>在你的机场订阅卡片上 <b>右键</b> → <b>「扩展脚本」</b>（找不到的话，用订阅页里的「全局扩展脚本」卡片 → 右键 → 编辑文件）。</li>
-        <li>把里面原有内容<b>全部删掉</b>，粘贴刚才复制的脚本 → <b>保存</b>。</li>
-        <li>回到 <b>「代理」</b> 页，模式选 <b>规则</b>；右上角刷新或重新选中一次订阅，让配置重新加载。</li>
-      </ol>
-      <div class="note">Clash Verge Rev 默认端口是 <b>7897</b>（不是 7890），终端和 curl 检查时记得用 7897。</div>
-      <details><summary class="muted">看一眼生成的内容</summary><pre id="pre-win"></pre></details>
-      <p class="big" style="margin-top:18px">用 Clash Party？</p>
-      <p class="muted" style="margin-top:0">Clash Party 也有 Windows 版，步骤和 Mac 完全一样，切到「💻 Mac」标签照做即可。</p>
-    </div>
-
-    <div data-p="android" class="hidden">
-      <p class="big">FlClash</p>
-      <div class="row"><button data-copy="android">① 复制脚本</button>
-        <button class="ghost" data-dl="android">或下载 homeport.js</button></div>
-      <ol>
-        <li>打开 FlClash → <b>工具</b> → <b>进阶配置</b> → <b>脚本</b> → <b>＋ 添加</b>。</li>
-        <li>名字随便填（如 homeport），内容里粘贴刚才复制的脚本，保存。</li>
-        <li><b>配置</b> → 机场订阅右侧的配置按钮 → <b>覆写</b> → <b>脚本</b> → 选中 homeport。</li>
-        <li>回 <b>仪表盘</b>，关掉再打开连接。</li>
-      </ol>
-      <div class="note">第 3 步最容易漏：不在订阅里选中脚本，等于没装。</div>
-      <details><summary class="muted">看一眼生成的内容</summary><pre id="pre-android"></pre></details>
-    </div>
-
-    <div data-p="ios" class="hidden">
-      <p class="big">Shadowrocket（小火箭）</p>
-      <div class="note"><b>顺序很重要：先装模块，再加节点。</b>整个过程中，首页<b>选中的节点</b>一直保持你平时用的机场节点，<b>不要点选 🏠住宅出口-勿选</b>。
-        🏠住宅出口-勿选 只给规则用，选中它会让所有流量都走住宅代理，GitHub 等网站可能打不开。</div>
-
-      <p><b>第一步：装规则模块</b>（趁现在网络正常）<br>
-        首页先确认能正常上网 → 底部 <b>配置</b> → <b>模块</b> → 右上角 ＋，粘贴下面链接 → 下载。</p>
-      <div class="row"><button class="ghost" data-copy="iosmod">复制模块链接</button></div>
-      <div id="iosCustom" class="hidden">
-        <div class="note">你改过第 2 步的网站选择，在线模块里是默认规则。装好模块后还要替换成你的版本：
-          在 <b>模块</b> 列表里点开 homeport → 编辑 → 全选删掉 → 粘贴下面复制的内容 → 保存。
-          以后别点这个模块的“更新”，否则会变回默认。</div>
-        <div class="row"><button data-copy="iostext">复制我的模块内容</button></div>
-        <details><summary class="muted">看一眼</summary><pre id="pre-ios"></pre></details>
+      <div data-dev-only="mac win">
+        <h4>⌨️ 终端 / Claude Code</h4>
+        <p style="margin:0" id="termHint"></p>
+        <pre id="termCmd"></pre>
+        <p class="muted" style="margin:6px 0 0">Claude Code 默认不走系统代理：开 TUN，或者按 <a href="https://github.com/0xkaka/homeport#8-claude-code终端chrome-的额外设置" target="_blank" rel="noopener">说明文档第 8 节</a> 设环境变量。</p>
       </div>
-
-      <p style="margin-top:16px"><b>第二步：加住宅节点</b>（二选一）</p>
-      <ul style="padding-left:20px">
-        <li><b>方法 A：扫码。</b>小火箭首页左上角扫码图标，扫下面这个码：<br>
-          <div id="qr"></div><br>
-          <span class="muted">在手机上看这个页面的话：点「复制节点链接」，打开小火箭，它一般会自动弹出“添加节点”。</span>
-          <div class="row"><button class="ghost" data-copy="iosnode">复制节点链接</button></div>
-        </li>
-        <li style="margin-top:12px"><b>方法 B：手动。</b>首页 ＋ → 类型 <b id="m-type">HTTP</b>，按下面填：<br>
-          地址 <code id="m-host"></code>（代理地址，不是出口 IP）　端口 <code id="m-port"></code><br>
-          用户 <code id="m-user"></code>　密码 <code id="m-pass"></code><br>
-          备注 <code>🏠住宅出口-勿选</code>（必须一字不差，带房子图标，建议点按钮复制）<div class="row"><button class="ghost" data-copy="remark">复制备注名</button></div></li>
-      </ul>
-      <div class="note">添加后确认<b>备注是 🏠住宅出口-勿选</b>。如果小火箭自动选中了 🏠住宅出口-勿选（名字前面出现<b>橙色圆点</b>），<b>马上点回你的机场节点</b>，否则所有网站都会走住宅代理，住宅代理一卡就全部没网。</div>
-
-      <p><b>第三步：设跳板</b>：点 🏠住宅出口-勿选 右边 ⓘ → <b>代理通过</b> → 选一个台湾/日本/新加坡/美国/韩国节点 → 保存。<br>
-        <span class="muted">设好后节点下面会显示类似 <code>HTTP / 跳板名 &gt; SHADOWSOCKS</code>，意思是“HTTP 住宅代理，经由某个 Shadowsocks 跳板”，这是正常的。
-        🏠住宅出口-勿选 测速显示“超时”不一定代表不能用，以第 4 步打开 ipv4.webshare.io 的结果为准。</span></p>
-
-      <p><b>第四步：切到配置模式</b>：首页 <b>全局路由</b> 选 <b>配置</b>；选中的节点是<b>机场节点</b>；打开开关。<br>
-        <span class="muted">这样只有 Claude、Google 等走住宅出口，其他网站照常走机场。</span></p>
     </div>
-    <p id="copied" class="ok"></p>
+    <p class="muted" style="margin:14px 0 0">IP 不对？看 <a href="https://github.com/0xkaka/homeport#9-常见问题" target="_blank" rel="noopener">常见问题</a>。</p>
   </section>
 
-  <section class="card">
-    <h2><span class="step">4</span>检查是否成功</h2>
-    <p>每台设备都打开 <a href="https://ipv4.webshare.io/" target="_blank" rel="noopener">ipv4.webshare.io</a>，
-      显示的 IP 应该<b>全部一样</b>，且等于你住宅代理的 IP<span id="hostHint"></span>。</p>
-    <p class="muted">Mac 上的 Chrome 还要关 QUIC：地址栏打开 <code>chrome://flags/#enable-quic</code> → Disabled → Relaunch。<br>
-      Claude Code / 终端不走系统代理，详见 <a href="https://github.com/0xkaka/homeport#7-claude-code终端chrome-的额外设置">说明文档第 7 节</a>。</p>
-    <p class="muted">遇到问题看 <a href="https://github.com/0xkaka/homeport#8-常见问题">常见问题</a>。</p>
-  </section>
+  <footer>homeport · <a href="https://github.com/0xkaka/homeport" target="_blank" rel="noopener">GitHub</a></footer>
 </main>
+<div id="toast" role="status"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
@@ -224,12 +436,12 @@ const BASE = "https://raw.githubusercontent.com/0xkaka/homeport/main/";
 const MODULE_URL = BASE + "shadowrocket/homeport.module";
 const $ = (id) => document.getElementById(id);
 const tpl = {};
-let cur = null;
+let cur = null, copiedOnce = false;
 
 Promise.all(["clash-party/override.yaml", "flclash/homeport.js"].map((p) =>
   fetch((location.protocol.startsWith("http") ? "" : BASE) + p, { cache: "no-store" }).then((r) => { if (!r.ok) throw r.status; return r.text(); })
 )).then(([y, j]) => { tpl.mac = y; tpl.android = j; render(); })
-  .catch(() => { $("status").innerHTML = '<span class="err">模板加载失败：请先连上能访问 GitHub 的网络，再刷新本页。</span>'; });
+  .catch(() => { setParsed("bad", "模板加载失败：请先连上能访问 GitHub 的网络，再刷新本页。"); });
 
 function setProto(p) { document.querySelector(`[name=proto][value=${p}]`).checked = true; }
 const proto = () => document.querySelector("[name=proto]:checked").value;
@@ -251,7 +463,8 @@ function parseRaw(s) {
 $("raw").addEventListener("input", () => {
   const p = parseRaw($("raw").value);
   if (p) { for (const k of ["host", "port", "user", "pass"]) $(k).value = p[k]; }
-  render(!p && $("raw").value.trim() ? "这串格式没认出来，请在下面分开填。" : "");
+  else if ($("raw").value.trim()) $("manual").open = true;
+  render(!p && $("raw").value.trim() ? "这串格式没认出来，请在下面「手动填写」里分开填。" : "");
 });
 for (const k of ["host", "port", "user", "pass"]) $(k).addEventListener("input", () => render());
 document.querySelectorAll("[name=proto]").forEach((r) => r.addEventListener("change", () => {
@@ -267,6 +480,7 @@ function read() {
 }
 
 const yq = (s) => JSON.stringify(s); // JSON 字符串同时是合法的 YAML 双引号字符串和 JS 字符串
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const EXIT = "🏠住宅出口-勿选";
 
 // 规则分组。on = 默认是否勾选；rules 里 "S:" 域名后缀，"K:" 关键词，其余为整条规则（不含策略）；
@@ -284,7 +498,7 @@ const GROUPS = [
     rules: ["S:hcaptcha.com", "S:challenges.cloudflare.com", "S:recaptcha.net"] },
   { id: "pay", name: "支付 / 身份认证", on: true, desc: "Stripe、Persona",
     rules: ["S:stripe.com", "S:stripe.network", "S:stripecdn.com", "S:withpersona.com"] },
-  { id: "google", name: "Google（含 Gmail、Google Pay、Gemini）", on: true, desc: "google.com、googleapis.com、gstatic.com、gmail.com 等",
+  { id: "google", name: "Google（含 Gmail、Gemini）", on: true, desc: "google.com、googleapis.com、gstatic.com、gmail.com 等",
     rules: ["S:google.com", "S:googleapis.com", "S:gstatic.com", "S:googleusercontent.com", "S:gmail.com"],
     android: ["com.android.vending", "com.google.android.apps.walletnfcrel"] },
   { id: "ipcheck", name: "IP 检测网站", on: true, desc: "webshare.io、ipinfo.io（用来核对出口 IP）",
@@ -357,7 +571,10 @@ function build(v) {
     .replace('password: "<PASSWORD>"', "password: " + yq(v.pass))
     .replace(/const SUFFIX = \[[\s\S]*?\];\n\nconst KEYWORD = [\s\S]*?;\n\nconst PROCESS = \[[\s\S]*?\];\n\n/, "")
     .replace(/  const rules = \[[\s\S]*?\n  \];/, rulesJs);
+  // Clash Verge Rev 不认安卓的 PROCESS-NAME 包名规则，只放通用规则
+  const rulesWin = "  const rules = [\n" + s.common.map((r) => "    " + yq(r) + ",").join("\n") + "\n  ];";
   const win = android
+    .replace(/  const rules = \[[\s\S]*?\n  \];/, rulesWin)
     .replace("// homeport · FlClash 覆写脚本（FlClash ≥ 0.8.85）", "// homeport · Clash Verge Rev 扩展脚本")
     .replace("// 改完以后别再从 URL 重新导入，否则会被占位符覆盖。\n", "")
     .replace("const main = (config) => {", "function main(config, profileName) {")
@@ -368,34 +585,51 @@ function build(v) {
   return { mac, android, win, iosnode, iosmod: MODULE_URL, iostext, sel: s };
 }
 
+function setParsed(kind, html) {
+  $("parsed").className = "parsed " + kind;
+  $("status").innerHTML = html;
+  $("parsedList").classList.toggle("hidden", kind !== "ok");
+}
+
 function renderSummary() {
   const on = GROUPS.filter((g) => document.querySelector(`[data-g="${g.id}"]`).checked);
   const n = $("custom").value.split(/\n/).filter((l) => l.trim() && !l.trim().startsWith("#")).length;
   $("selSummary").innerHTML = on.map((g) => `<span class="chip">${g.name.replace(/（.*）/, "")}</span>`).join("") +
-    (n ? `<span class="chip">自定义 ${n} 条</span>` : "") + (on.length || n ? "" : '<span class="err">一个都没选</span>');
+    (n ? `<span class="chip">自定义 ${n} 条</span>` : "") + (on.length || n ? "" : '<span class="chip" style="color:var(--err);background:var(--err-soft)">一个都没选</span>');
+  return on.length + n;
 }
 
+function stepDone(i, ok) { $("st" + i).classList.toggle("done", !!ok); }
+
 function render(msg) {
-  renderSummary();
+  const nSel = renderSummary();
+  stepDone(2, nSel > 0);
   const v = read();
   document.querySelectorAll("[data-copy],[data-dl]").forEach((b) => {
     b.disabled = !v && !["iosmod", "remark"].includes(b.dataset.copy);
   });
+  stepDone(1, !!v);
+  stepDone(3, !!v && copiedOnce);
+  const isIP = v && /^\d+\.\d+\.\d+\.\d+$/.test(v.host);
+  $("ipWarn").classList.toggle("hidden", !(isIP && v.proto === "http"));
+  $("ipWarn").innerHTML = '⚠️ <b>HTTP 代理的地址一般是域名。</b>如果后台同时有代理地址和 Assigned IP（比如 Webshare 的 <code>p.webshare.io</code>），要填代理地址，填出口 IP 会一直超时。如果后台只给了这一个 IP（IP:端口 形式），那就没问题。';
   if (!tpl.mac) return;
   if (!v) {
     cur = null;
-    $("status").innerHTML = msg ? `<span class="err">${msg}</span>` : "填好四项后，下面的按钮就能用了。";
+    if (msg) setParsed("bad", "✗ " + esc(msg));
+    else setParsed("idle", $("raw").value.trim() || $("host").value.trim() ? "还差几项没填（地址、端口、用户名、密码都要有）" : "等你粘贴…");
     $("pre-mac").textContent = $("pre-android").textContent = $("pre-win").textContent = "（先在第 1 步填写）";
     $("qr").innerHTML = '<span style="color:#888;font-size:13px">填好后显示二维码</span>';
+    for (const k of ["host", "port", "user", "pass"]) $("m-" + k).textContent = k === "host" ? "（先填第 1 步）" : "-";
     $("hostHint").textContent = "";
-    const s = selection();
-    $("ruleStat").textContent = `共 ${s.common.length} 条规则`;
+    $("ruleStat").textContent = `共 ${selection().common.length} 条规则`;
+    renderCheck(null);
     return;
   }
   cur = build(v);
-  $("status").innerHTML = `<span class="ok">✓ 已识别：${v.proto.toUpperCase()} ${v.host}:${v.port}，用户 ${v.user}</span>` +
-    (/^\d+\.\d+\.\d+\.\d+$/.test(v.host) ? `<br><span class="muted">💡 地址是一个 IP：如果后台只给了这一个 IP（IP:端口 形式），填它就对；
-    如果后台同时有代理地址和 Assigned IP（比如 Webshare 的 <code>p.webshare.io</code>），要填代理地址，填出口 IP 会一直超时。</span>` : "");
+  setParsed("ok", `✓ 已识别 ${v.proto.toUpperCase()} 代理`);
+  $("pv-host").textContent = v.host; $("pv-port").textContent = v.port; $("pv-user").textContent = v.user;
+  $("pv-pass").textContent = v.pass.length > 4 ? v.pass.slice(0, 2) + "•".repeat(Math.min(8, v.pass.length - 2)) : "••••";
   $("m-type").textContent = v.proto === "socks5" ? "Socks5" : "HTTP";
   $("pre-mac").textContent = cur.mac;
   $("pre-android").textContent = cur.android;
@@ -403,23 +637,82 @@ function render(msg) {
   $("pre-ios").textContent = cur.iostext;
   $("iosCustom").classList.toggle("hidden", cur.sel.isDefault);
   $("ruleStat").innerHTML = `共 ${cur.sel.common.length} 条规则` + (cur.sel.android.length ? `（安卓另加 ${cur.sel.android.length} 条 App 规则）` : "") +
-    (cur.sel.bad.length ? `<br><span class="err">这几行没看懂，已忽略：${cur.sel.bad.map((x) => x.replace(/</g, "&lt;")).join("、")}</span>` : "");
+    (cur.sel.bad.length ? `<br><span style="color:var(--err)">这几行没看懂，已忽略：${cur.sel.bad.map(esc).join("、")}</span>` : "");
   $("m-host").textContent = v.host; $("m-port").textContent = v.port;
   $("m-user").textContent = v.user; $("m-pass").textContent = v.pass;
-  $("hostHint").textContent = "（后台的 Assigned IP / 出口 IP）";
+  $("hostHint").textContent = isIP ? `（一般就是 ${v.host}）` : "（服务商后台的 Assigned IP / 出口 IP）";
   $("qr").innerHTML = "";
-  if (window.QRCode) new QRCode($("qr"), { text: cur.iosnode, width: 200, height: 200 });
+  if (window.QRCode) new QRCode($("qr"), { text: cur.iosnode, width: 180, height: 180 });
   else $("qr").textContent = "二维码组件没加载出来，请用方法 B 手动添加。";
+  renderCheck(v);
 }
 
+/* ---------- 设备 / 软件 ---------- */
+const APPS = {
+  mac: [["party", "Clash Party"], ["verge", "Clash Verge Rev"], ["sr", "小火箭"]],
+  win: [["verge", "Clash Verge Rev", "推荐"], ["party", "Clash Party"], ["v2rayn", "v2rayN"]],
+  ios: [["sr", "小火箭"]],
+  android: [["flclash", "FlClash"]],
+};
+const state = { dev: "mac", app: "party" };
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+};
+
+function pick(dev, app) {
+  state.dev = dev;
+  const list = APPS[dev];
+  state.app = list.some(([id]) => id === app) ? app : list[0][0];
+  store.set("hp-dev", state.dev); store.set("hp-app-" + dev, state.app);
+  document.querySelectorAll("[data-dev]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.dev === dev));
+  $("apps").innerHTML = list.length > 1
+    ? '<span class="muted">你用的软件：</span>' + list.map(([id, name, tag]) =>
+      `<button class="app" data-app-btn="${id}" aria-pressed="${id === state.app}">${name}${tag ? `<small>${tag}</small>` : ""}</button>`).join("")
+    : "";
+  $("apps").querySelectorAll("[data-app-btn]").forEach((b) => b.addEventListener("click", () => pick(state.dev, b.dataset.appBtn)));
+  document.querySelectorAll("[data-app]").forEach((p) => p.classList.toggle("hidden", p.dataset.app !== state.app));
+  const os = dev === "win" ? "win" : dev === "mac" ? "mac" : "ios";
+  document.querySelectorAll("[data-os]").forEach((e) => e.classList.toggle("hidden", e.dataset.os !== os));
+  document.querySelectorAll("[data-dev-only]").forEach((e) => e.classList.toggle("hidden", !e.dataset.devOnly.split(" ").includes(dev)));
+  renderCheck(read());
+}
+
+function renderCheck(v) {
+  const port = state.app === "verge" ? 7897 : state.app === "party" ? 7890 : 0;
+  if (state.dev !== "mac" && state.dev !== "win") return;
+  if (state.app === "sr") {
+    $("termHint").textContent = "小火箭在 Mac 上是 VPN 模式，终端一般也会走。打开「终端」运行：";
+    $("termCmd").textContent = "curl https://ipv4.webshare.io/";
+  } else if (state.dev === "win") {
+    $("termHint").innerHTML = "打开 PowerShell 运行（注意是 <code>curl.exe</code>，不是 curl）：";
+    $("termCmd").textContent = `curl.exe -x http://127.0.0.1:${port || 7897} https://ipv4.webshare.io/`;
+  } else {
+    $("termHint").textContent = "打开「终端」运行：";
+    $("termCmd").textContent = `curl -x http://127.0.0.1:${port || 7890} https://ipv4.webshare.io/`;
+  }
+  if (port) $("termHint").innerHTML += ` <span class="muted">（${port} 是 ${state.app === "verge" ? "Clash Verge Rev" : "Clash Party"} 默认端口，改过的话以软件设置里为准）</span>`;
+}
+
+document.querySelectorAll("[data-dev]").forEach((b) => b.addEventListener("click", () => pick(b.dataset.dev, store.get("hp-app-" + b.dataset.dev))));
+document.querySelectorAll("[data-goapp]").forEach((b) => b.addEventListener("click", () => pick(state.dev, b.dataset.goapp)));
+
+/* ---------- 复制 / 下载 ---------- */
+function toast(t) {
+  $("toast").textContent = t; $("toast").classList.add("show");
+  clearTimeout(toast.t); toast.t = setTimeout(() => $("toast").classList.remove("show"), 2200);
+}
 document.querySelectorAll("[data-copy]").forEach((b) => b.addEventListener("click", async () => {
   const k = b.dataset.copy;
   const text = k === "iosmod" ? MODULE_URL : k === "remark" ? EXIT : cur && cur[k];
   if (!text) return;
   try { await navigator.clipboard.writeText(text); }
   catch { const t = document.createElement("textarea"); t.value = text; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); }
-  $("copied").textContent = "✓ 已复制，去 App 里粘贴吧";
-  setTimeout(() => ($("copied").textContent = ""), 2500);
+  const old = b.dataset.label || (b.dataset.label = b.textContent);
+  b.textContent = "✓ 已复制"; b.classList.add("done");
+  setTimeout(() => { b.textContent = old; b.classList.remove("done"); }, 1800);
+  toast("已复制，去软件里粘贴吧");
+  if (!["remark"].includes(k)) { copiedOnce = true; stepDone(3, !!read()); }
 }));
 
 document.querySelectorAll("[data-dl]").forEach((b) => b.addEventListener("click", () => {
@@ -427,17 +720,20 @@ document.querySelectorAll("[data-dl]").forEach((b) => b.addEventListener("click"
   const k = b.dataset.dl;
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([cur[k]], { type: "text/plain" }));
-  a.download = { mac: "homeport.yaml", android: "homeport.js", win: "homeport-verge.js" }[k];
+  a.download = { mac: "homeport.yaml" }[k];
   a.click();
+  copiedOnce = true; stepDone(3, !!read());
 }));
 
-document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
-  document.querySelectorAll(".tab").forEach((x) => x.setAttribute("aria-selected", x === t));
-  document.querySelectorAll("[data-p]").forEach((p) => p.classList.toggle("hidden", p.dataset.p !== t.dataset.t));
-}));
-if (/iPhone|iPad/i.test(navigator.userAgent)) document.querySelector('[data-t="ios"]').click();
-else if (/Windows/i.test(navigator.userAgent)) document.querySelector('[data-t="win"]').click();
-else if (/Android/i.test(navigator.userAgent)) document.querySelector('[data-t="android"]').click();
+/* ---------- 自动识别设备 ---------- */
+(function detect() {
+  const ua = navigator.userAgent;
+  const iPadOS = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1; // iPad 的 Safari 默认伪装成 Mac
+  let dev = /iPhone|iPad|iPod/.test(ua) || iPadOS ? "ios" : /Android/i.test(ua) ? "android" : /Windows/i.test(ua) ? "win" : "mac";
+  const saved = store.get("hp-dev");
+  if (saved && APPS[saved]) dev = saved;
+  pick(dev, store.get("hp-app-" + dev));
+})();
 
 render();
 </script>

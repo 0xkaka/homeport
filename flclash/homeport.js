@@ -17,7 +17,7 @@ const HOME = {
 
 const EXIT = "🏠住宅出口-勿选";
 const RELAY = "HP_Relay";
-const RELAY_FILTER = "(?i)(台湾|台灣|日本|新加坡|美国|美國|韩国|韓國|\\b(TW|JP|SG|US|KR)\\b)";
+const RELAY_FILTER = "(?i)(台湾|台灣|台北|日本|东京|東京|大阪|新加坡|狮城|美国|美國|洛杉矶|硅谷|圣何塞|西雅图|纽约|芝加哥|达拉斯|韩国|韓國|首尔|首爾|🇹🇼|🇯🇵|🇸🇬|🇺🇸|🇰🇷|Japan|Tokyo|Osaka|Taiwan|Taipei|Singapore|Korea|Seoul|United States|America|Los Angeles|San Jose|Silicon Valley|Seattle|\\b(TW|JP|SG|US|USA|KR|LAX|SJC|NRT|HND|TPE|SIN|ICN)\\b)";
 const RELAY_EXCLUDE = "(?i)倍率|IPv6|到期|剩余|官网|失联|故障|香港|\\bHK\\b";
 
 const SUFFIX = [
