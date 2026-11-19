@@ -278,11 +278,11 @@
       <h3>Clash Party</h3>
       <p class="before"><b>开始前：</b>Clash Party 已装好，机场订阅已导入，现在能正常翻墙。</p>
       <ol class="steps">
-        <li><b>复制配置</b>
-          <div class="btns"><button class="btn" data-copy="mac">复制配置</button><button class="btn ghost" data-dl="mac">或下载 homeport.yaml</button></div></li>
+        <li><b>复制脚本</b>
+          <div class="btns"><button class="btn" data-copy="mac">复制脚本</button><button class="btn ghost" data-dl="mac">或下载 homeport.js</button></div></li>
         <li><b>新建覆写</b>
-          <p>左侧 <span class="path">覆写</span> → 右上角 <span class="path">＋</span> → <span class="path">新建 YAML</span>。把编辑框里原有的内容<b>全部删掉</b>，粘贴，保存。</p>
-          <p class="muted">下载了文件的话，也可以在 ＋ 里选「导入」，选 homeport.yaml。</p></li>
+          <p>左侧 <span class="path">覆写</span> → 右上角 <span class="path">＋</span> → <span class="path">新建 JavaScript</span>。把编辑框里原有的内容<b>全部删掉</b>，粘贴，保存。</p>
+          <p class="muted">下载了文件的话，也可以在 ＋ 里选「导入」，选 homeport.js。</p></li>
         <li><b>挂到机场订阅上</b>
           <p>左侧 <span class="path">订阅管理</span> → 机场订阅卡片右上角 <span class="path">⋯<i>›</i>编辑信息</span> → <span class="path">覆写</span> 里<b>勾选 homeport</b> → 保存。</p>
           <div class="note warn">这一步最容易漏：不勾选，等于没装。</div></li>
@@ -290,7 +290,7 @@
           <p>左侧 <span class="path">内核设置</span> → 点重启（旋转箭头）。首页代理模式选 <b>规则</b>，<b>系统代理</b> 保持打开。</p>
           <p class="muted">想让 Claude 桌面版、Claude Code 这类不认系统代理的软件也走：再打开 <b>虚拟网卡（TUN）</b>，第一次会要求授权，点允许。</p></li>
       </ol>
-      <p class="muted">以后别点这份覆写的「更新」，否则会变回没填账号的模板。</p>
+      <div class="note info">🪜 <b>跳板 = 你在机场里选的节点。</b>平时怎么选节点照旧，选哪个，住宅代理就经过哪个，网站看到的始终是住宅 IP。只是别选 🏠住宅出口-勿选。</div>
       <details class="more"><summary>看一眼生成的内容</summary><pre id="pre-mac"></pre></details>
     </div>
 
@@ -312,6 +312,7 @@
           <p><span class="path">设置</span> → 打开 <b>系统代理</b>（浏览器靠它走代理）。</p>
           <p class="muted">想让 Claude 桌面版、Claude Code 也走：再打开 <b>虚拟网卡模式（TUN）</b>。第一次会提示安装服务，点安装<span data-os="win">（需要管理员权限）</span>。</p></li>
       </ol>
+      <div class="note info">🪜 <b>跳板 = 你在机场里选的节点。</b>平时怎么选节点照旧，选哪个，住宅代理就经过哪个，网站看到的始终是住宅 IP。只是别选 🏠住宅出口-勿选。</div>
       <div class="note info">Clash Verge Rev 的默认端口是 <b>7897</b>（不是 7890），终端检查时用 7897。</div>
       <details class="more"><summary>看一眼生成的内容</summary><pre id="pre-win"></pre></details>
     </div>
@@ -348,6 +349,7 @@
         <li><b>重新连接</b>
           <p>回 <span class="path">仪表盘</span>，关掉再打开连接。</p></li>
       </ol>
+      <div class="note info">🪜 <b>跳板 = 你在机场里选的节点。</b>平时怎么选节点照旧，选哪个，住宅代理就经过哪个，网站看到的始终是住宅 IP。只是别选 🏠住宅出口-勿选。</div>
       <details class="more"><summary>看一眼生成的内容</summary><pre id="pre-android"></pre></details>
     </div>
 
@@ -424,9 +426,9 @@ const $ = (id) => document.getElementById(id);
 const tpl = {};
 let cur = null, copiedOnce = false;
 
-Promise.all(["clash-party/override.yaml", "flclash/homeport.js"].map((p) =>
-  fetch((location.protocol.startsWith("http") ? "" : BASE) + p, { cache: "no-store" }).then((r) => { if (!r.ok) throw r.status; return r.text(); })
-)).then(([y, j]) => { tpl.mac = y; tpl.android = j; render(); })
+fetch((location.protocol.startsWith("http") ? "" : BASE) + "flclash/homeport.js", { cache: "no-store" })
+  .then((r) => { if (!r.ok) throw r.status; return r.text(); })
+  .then((j) => { tpl.android = j; render(); })
   .catch(() => { setParsed("bad", "模板加载失败：请先连上能访问 GitHub 的网络，再刷新本页。"); });
 
 const proto = () => document.querySelector("[name=proto]:checked").value;
@@ -520,14 +522,6 @@ function selection() {
 
 function build(v) {
   const s = selection();
-  const rulesYaml = "+rules:\n" + s.common.map((r) => "  - " + r).join("\n") + "\n";
-  const mac = tpl.mac
-    .replace(/type: http\n/, "type: " + v.proto + "\n")
-    .replace('server: "<HOST>"', "server: " + yq(v.host))
-    .replace(/port: 0\b/, "port: " + v.port)
-    .replace('username: "<USERNAME>"', "username: " + yq(v.user))
-    .replace('password: "<PASSWORD>"', "password: " + yq(v.pass))
-    .replace(/\+rules:[\s\S]*$/, rulesYaml);
   const rulesJs = "  const rules = [\n" + [...s.common, ...s.android].map((r) => "    " + yq(r) + ",").join("\n") + "\n  ];";
   const android = tpl.android
     .replace('type: "http",', "type: " + yq(v.proto) + ",")
@@ -541,14 +535,15 @@ function build(v) {
   const rulesWin = "  const rules = [\n" + s.common.map((r) => "    " + yq(r) + ",").join("\n") + "\n  ];";
   const win = android
     .replace(/  const rules = \[[\s\S]*?\n  \];/, rulesWin)
-    .replace("// homeport · FlClash 覆写脚本（FlClash ≥ 0.8.85）", "// homeport · Clash Verge Rev 扩展脚本")
+    .replace("// homeport · FlClash 覆写脚本（FlClash ≥ 0.8.85）", "// homeport · Clash Verge Rev 扩展脚本 / Clash Party JavaScript 覆写")
+    .replace(/\n\/\/ Clash Verge Rev \/ Clash Party 也用这份脚本[^\n]*\n\/\/[^\n]*\n/, "\n")
     .replace("// 改完以后别再从 URL 重新导入，否则会被占位符覆盖。\n", "")
     .replace("const main = (config) => {", "function main(config, profileName) {")
     .replace(/\n};\s*$/, "\n}\n");
   const iostext = "#!name=homeport\n#!desc=选中的网站走备注为 🏠住宅出口-勿选 的住宅节点\n\n[Rule]\n" + s.common.join("\n") + "\n";
   const b64 = btoa(unescape(encodeURIComponent(`${v.user}:${v.pass}@${v.host}:${v.port}`)));
   const iosnode = `${v.proto === "socks5" ? "socks" : "http"}://${b64}?remarks=${encodeURIComponent(EXIT)}`;
-  return { mac, android, win, iosnode, iosmod: MODULE_URL, iostext, sel: s };
+  return { mac: win, android, win, iosnode, iosmod: MODULE_URL, iostext, sel: s };
 }
 
 function setParsed(kind, html) {
@@ -578,7 +573,7 @@ function render() {
   const isIP = v && /^\d+\.\d+\.\d+\.\d+$/.test(v.host);
   $("ipWarn").classList.toggle("hidden", !(isIP && v.proto === "http"));
   $("ipWarn").innerHTML = '⚠️ <b>HTTP 代理的地址一般是域名。</b>如果后台同时有代理地址和 Assigned IP（比如 Webshare 的 <code>p.webshare.io</code>），要填代理地址，填出口 IP 会一直超时。如果后台只给了这一个 IP（IP:端口 形式），那就没问题。';
-  if (!tpl.mac) return;
+  if (!tpl.android) return;
   if (!v) {
     cur = null;
     const any = ["host", "port", "user", "pass"].some((k) => $(k).value.trim());
@@ -684,7 +679,7 @@ document.querySelectorAll("[data-dl]").forEach((b) => b.addEventListener("click"
   const k = b.dataset.dl;
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([cur[k]], { type: "text/plain" }));
-  a.download = { mac: "homeport.yaml" }[k];
+  a.download = { mac: "homeport.js" }[k];
   a.click();
   copiedOnce = true; stepDone(3, !!read());
 }));
