@@ -85,6 +85,8 @@ homeport 做的事情很简单：把这些“敏感网站”单独挑出来，�
 > - 后台只给了一个 `IP:端口`（比如 `50.2.71.50:443`）：地址就填这个 IP。
 > - 后台同时有代理地址和 Assigned IP（比如 Webshare）：**填代理地址，不是 Assigned IP / 出口 IP。** 比如 Webshare 后台一行里同时有 `p.webshare.io`（代理地址）和 `9.x.x.x`（Assigned IP），要填的是 `p.webshare.io`；那个 IP 是最后网站看到的出口，用来核对结果。
 
+> ⭐ **Webshare 用户**：后台代理列表上方的 **Connection Method** 选 **Backbone Connection**，最稳定。别选 **Rotating Proxy Endpoint**，那个 IP 会一直变，等于白买静态 IP。切好后列表里的 Proxy Address 就是 `p.webshare.io`，用户名带 `-1` 这类后缀，照着填就行。
+
 > 💡 有的服务商给的是一整串，比如 `p.webshare.io:80:abcd1234-1:xyz789`，按冒号拆开就是 地址:端口:用户名:密码。还有一种是 `用户名:密码@地址:端口`。拆开后分别填到一键配置页的四个格子里。
 
 > 💡 **用 SOCKS5 的**：Mac / Windows / 安卓配置里把 `type: http`（或 `type: "http"`）改成 `socks5`；小火箭节点类型选 **Socks5**。一键页上直接选 SOCKS5 就行。

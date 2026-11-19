@@ -228,7 +228,8 @@
       <div><label class="f" for="user">用户名</label><input type="text" id="user" autocomplete="off" spellcheck="false"></div>
       <div><label class="f" for="pass">密码</label><input type="text" id="pass" autocomplete="off" spellcheck="false"></div>
     </div>
-    <p class="muted" style="margin:10px 0 0">Webshare 这类服务商后台有两个地址：<b>Proxy Address</b>（如 <code>p.webshare.io</code>）和 <b>Assigned IP</b>（出口 IP）。<b>填 Proxy Address</b>，Assigned IP 是用来最后核对的。</p>
+    <div class="note info"><b>用 Webshare 的：</b>先在后台代理列表上方把 <b>Connection Method</b> 切到 <b>Backbone Connection</b>（最稳定；别选 Rotating Proxy Endpoint，那个 IP 会一直变）。<br>
+      然后照列表填：地址填 <b>Proxy Address</b>（如 <code>p.webshare.io</code>），<b>不是</b> Assigned IP；Assigned IP 是出口 IP，留着最后核对。</div>
 
     <div class="protoRow">
       <div class="seg" id="protoBox" role="radiogroup" aria-label="协议">
