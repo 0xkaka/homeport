@@ -37,8 +37,11 @@ def clash_rules():
             errors.append("clash: 住宅节点名或 dialer-proxy 不对")
         if group["name"] != RELAY:
             errors.append("clash: 中转组名不对")
-        for k in ("filter", "exclude-filter"):
-            re.compile(group[k].replace("(?i)", ""), re.I)
+        if "filter" in group:
+            errors.append("clash: 跳板组不该再按名字筛选（filter），会让部分机场没有跳板")
+        exc = re.compile(group["exclude-filter"].replace("(?i)", ""), re.I)
+        if not exc.search(EXIT):
+            errors.append("clash: exclude-filter 必须排除住宅出口自己，否则会死循环")
         rules = doc["+rules"]
     except ImportError:
         rules = re.findall(r"^  - ((?:IP|DOMAIN|PROCESS)-[^\n]+)$", text, re.M)

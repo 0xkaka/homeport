@@ -211,7 +211,7 @@
     <details>
       <summary>✅ 开始前，先确认这 3 件事</summary>
       <ul class="checklist">
-        <li><b>有机场，而且现在能正常翻墙。</b>homeport 要借机场的节点当跳板。节点名里要有台湾 / 日本 / 新加坡 / 美国 / 韩国（或它们的城市名、英文名、国旗），<b>只有香港节点的机场不行</b>。</li>
+        <li><b>有机场，而且现在能正常翻墙。</b>homeport 会借机场的节点当跳板，自动挑最快的那个，<b>任何机场、任何地区的节点都行</b>。</li>
         <li><b>买好了一条静态住宅代理</b>（HTTP 或 SOCKS5），手里有：地址、端口、用户名、密码。</li>
         <li><b>装好了代理软件，并且机场订阅已经导入：</b>Mac 用 Clash Party / Clash Verge Rev / 小火箭；Windows 用 Clash Verge Rev / Clash Party；iPhone、iPad 用小火箭；安卓用 FlClash。</li>
       </ul>
@@ -228,7 +228,7 @@
       <div><label class="f" for="user">用户名</label><input type="text" id="user" autocomplete="off" spellcheck="false"></div>
       <div><label class="f" for="pass">密码</label><input type="text" id="pass" autocomplete="off" spellcheck="false"></div>
     </div>
-    <div class="note info"><b>用 Webshare 的：</b>先在后台代理列表上方把 <b>Connection Method</b> 切到 <b>Backbone Connection</b>（最稳定；别选 Rotating Proxy Endpoint，那个 IP 会一直变）。<br>
+    <div class="note info"><b>用 Webshare 的：</b>先在后台代理列表上方把 <b>Connection Method</b> 切到 <b>Backbone Connection</b>（最稳定；别选 Rotating Proxy Endpoint，那个 IP 如果有问题，官方会自动换，换了你要去后台手动获取重新配置才行）。<br>
       然后照列表填：地址填 <b>Proxy Address</b>（如 <code>p.webshare.io</code>），<b>不是</b> Assigned IP；Assigned IP 是出口 IP，留着最后核对。</div>
 
     <div class="protoRow">
@@ -384,7 +384,7 @@
           </dl>
           <div class="note warn">备注必须一字不差（带房子图标），建议点「复制」。加完如果名字前出现<b>橙色圆点</b>，说明被选中了，<b>马上点回机场节点</b>。</div></li>
         <li><b>设跳板</b>
-          <p>点 🏠住宅出口-勿选 右边的 <span class="path">ⓘ</span> → <span class="path">代理通过</span> → 选一个台湾 / 日本 / 新加坡 / 美国 / 韩国的机场节点 → 保存。</p>
+          <p>点 🏠住宅出口-勿选 右边的 <span class="path">ⓘ</span> → <span class="path">代理通过</span> → 选一个稳定的机场节点（哪个地区都行）→ 保存。</p>
           <p class="muted">设好后节点下面显示类似 <code>HTTP / 跳板名 &gt; SHADOWSOCKS</code> 是正常的。测速显示「超时」不代表不能用，以第 4 步的结果为准。</p></li>
         <li><b>切到配置模式</b>
           <p>首页 <span class="path">全局路由</span> 选 <b>配置</b>，选中的节点是<b>机场节点</b>，打开开关。</p></li>

@@ -5,7 +5,7 @@
 //
 // 使用前把下面 HOME 里的 server / port / username / password 换成自己的住宅代理。
 // 改完以后别再从 URL 重新导入，否则会被占位符覆盖。
-// 中转节点筛选规则见 RELAY_FILTER；所有中转都不能用时，把 dialer-proxy 改成 "DIRECT"
+// 跳板 = 机场里所有能用的节点（自动测速选最快），排除规则见 RELAY_EXCLUDE；所有中转都不能用时，把 dialer-proxy 改成 "DIRECT"
 // 并删掉 HP_Relay 这一组。
 
 const HOME = {
@@ -17,8 +17,7 @@ const HOME = {
 
 const EXIT = "🏠住宅出口-勿选";
 const RELAY = "HP_Relay";
-const RELAY_FILTER = "(?i)(台湾|台灣|台北|日本|东京|東京|大阪|新加坡|狮城|美国|美國|洛杉矶|硅谷|圣何塞|西雅图|纽约|芝加哥|达拉斯|韩国|韓國|首尔|首爾|🇹🇼|🇯🇵|🇸🇬|🇺🇸|🇰🇷|Japan|Tokyo|Osaka|Taiwan|Taipei|Singapore|Korea|Seoul|United States|America|Los Angeles|San Jose|Silicon Valley|Seattle|\\b(TW|JP|SG|US|USA|KR|LAX|SJC|NRT|HND|TPE|SIN|ICN)\\b)";
-const RELAY_EXCLUDE = "(?i)倍率|IPv6|到期|剩余|官网|失联|故障|香港|\\bHK\\b";
+const RELAY_EXCLUDE = "(?i)住宅出口|到期|过期|剩余|官网|网址|失联|故障|重置|套餐|Expire|Traffic|Reset|^(DIRECT|REJECT|COMPATIBLE|PASS)$";
 
 const SUFFIX = [
   // Claude / Anthropic
@@ -64,7 +63,6 @@ const main = (config) => {
     tolerance: 50,
     lazy: false,
     "include-all": true,
-    filter: RELAY_FILTER,
     "exclude-filter": RELAY_EXCLUDE,
   });
 
