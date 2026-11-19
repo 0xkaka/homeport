@@ -85,13 +85,9 @@
   input[type=text], textarea { width: 100%; padding: 11px 13px; border: 1px solid var(--line); border-radius: 10px;
     background: var(--bg); color: var(--text); font-size: 14.5px; transition: border-color .15s, box-shadow .15s; }
   input[type=text]:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-  #raw { font-size: 15px; padding: 14px; min-height: 52px; resize: vertical; }
-  .formats { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
-  .formats code { font-size: 12px; color: var(--muted); }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
   @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
-  details.manual { margin-top: 14px; }
-  details.manual > summary, details.more > summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 14px; }
+  details.more > summary { cursor: pointer; color: var(--accent); font-weight: 600; font-size: 14px; }
 
   .seg { display: inline-flex; padding: 3px; gap: 3px; background: var(--bg); border: 1px solid var(--line); border-radius: 11px; flex-wrap: wrap; }
   .seg button, .seg label { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 14px; font-weight: 600;
@@ -224,10 +220,15 @@
 
   <!-- ============ 1 ============ -->
   <section class="card" id="s1">
-    <h2><span class="n">1</span>粘贴住宅代理信息</h2>
-    <p class="desc">服务商后台给你的那一串，整串粘进来，会自动识别。</p>
-    <textarea id="raw" rows="1" placeholder="例如 p.webshare.io:80:abcd1234-1:xyz789" autocomplete="off" spellcheck="false"></textarea>
-    <div class="formats"><code>地址:端口:用户名:密码</code><code>用户名:密码@地址:端口</code><code>socks5://用户名:密码@地址:端口</code></div>
+    <h2><span class="n">1</span>填写住宅代理信息</h2>
+    <p class="desc">照着服务商后台，把下面四项填上。</p>
+    <div class="grid">
+      <div><label class="f" for="host">地址</label><input type="text" id="host" placeholder="域名，如 p.webshare.io" autocomplete="off" spellcheck="false"></div>
+      <div><label class="f" for="port">端口</label><input type="text" id="port" inputmode="numeric" placeholder="如 80" autocomplete="off"></div>
+      <div><label class="f" for="user">用户名</label><input type="text" id="user" autocomplete="off" spellcheck="false"></div>
+      <div><label class="f" for="pass">密码</label><input type="text" id="pass" autocomplete="off" spellcheck="false"></div>
+    </div>
+    <p class="muted" style="margin:10px 0 0">Webshare 这类服务商后台有两个地址：<b>Proxy Address</b>（如 <code>p.webshare.io</code>）和 <b>Assigned IP</b>（出口 IP）。<b>填 Proxy Address</b>，Assigned IP 是用来最后核对的。</p>
 
     <div class="protoRow">
       <div class="seg" id="protoBox" role="radiogroup" aria-label="协议">
@@ -238,26 +239,10 @@
     </div>
 
     <div class="parsed idle" id="parsed">
-      <div class="head" id="status">等你粘贴…</div>
-      <dl id="parsedList" class="hidden">
-        <div><dt>地址</dt><dd id="pv-host"></dd></div>
-        <div><dt>端口</dt><dd id="pv-port"></dd></div>
-        <div><dt>用户名</dt><dd id="pv-user"></dd></div>
-        <div><dt>密码</dt><dd id="pv-pass"></dd></div>
-      </dl>
+      <div class="head" id="status">填好四项后，下面的按钮就能用了。</div>
     </div>
     <div id="ipWarn" class="note warn hidden"></div>
 
-    <details class="manual" id="manual">
-      <summary>手动填写 / 修改</summary>
-      <div class="grid">
-        <div><label class="f" for="host">地址</label><input type="text" id="host" placeholder="域名，如 p.webshare.io" autocomplete="off" spellcheck="false"></div>
-        <div><label class="f" for="port">端口</label><input type="text" id="port" inputmode="numeric" autocomplete="off"></div>
-        <div><label class="f" for="user">用户名</label><input type="text" id="user" autocomplete="off" spellcheck="false"></div>
-        <div><label class="f" for="pass">密码</label><input type="text" id="pass" autocomplete="off" spellcheck="false"></div>
-      </div>
-      <p class="muted" style="margin:10px 0 0">Webshare 这类服务商后台有两个地址：<b>Proxy Address</b>（如 <code>p.webshare.io</code>）和 <b>Assigned IP</b>（出口 IP）。<b>填 Proxy Address</b>，Assigned IP 是用来最后核对的。</p>
-    </details>
   </section>
 
   <!-- ============ 2 ============ -->
@@ -443,29 +428,9 @@ Promise.all(["clash-party/override.yaml", "flclash/homeport.js"].map((p) =>
 )).then(([y, j]) => { tpl.mac = y; tpl.android = j; render(); })
   .catch(() => { setParsed("bad", "模板加载失败：请先连上能访问 GitHub 的网络，再刷新本页。"); });
 
-function setProto(p) { document.querySelector(`[name=proto][value=${p}]`).checked = true; }
 const proto = () => document.querySelector("[name=proto]:checked").value;
 
-function parseRaw(s) {
-  s = s.trim();
-  if (/^socks5?h?:\/\//i.test(s)) setProto("socks5");
-  else if (/^https?:\/\//i.test(s)) setProto("http");
-  s = s.replace(/^[a-z0-9]+:\/\//i, "").replace(/\/+$/, "");
-  let m = s.match(/^(.+):(.+)@([^:@]+):(\d+)$/);
-  if (m) return { user: m[1], pass: m[2], host: m[3], port: m[4] };
-  m = s.match(/^([^:@]+):(\d+)@(.+?):(.+)$/);
-  if (m) return { host: m[1], port: m[2], user: m[3], pass: m[4] };
-  m = s.match(/^([^:@\s]+):(\d+):([^:]+):(.+)$/);
-  if (m) return { host: m[1], port: m[2], user: m[3], pass: m[4] };
-  return null;
-}
 
-$("raw").addEventListener("input", () => {
-  const p = parseRaw($("raw").value);
-  if (p) { for (const k of ["host", "port", "user", "pass"]) $(k).value = p[k]; }
-  else if ($("raw").value.trim()) $("manual").open = true;
-  render(!p && $("raw").value.trim() ? "这串格式没认出来，请在下面「手动填写」里分开填。" : "");
-});
 for (const k of ["host", "port", "user", "pass"]) $(k).addEventListener("input", () => render());
 document.querySelectorAll("[name=proto]").forEach((r) => r.addEventListener("change", () => {
   $("host").placeholder = proto() === "socks5" ? "域名或 IP，如 50.2.71.50" : "域名，如 p.webshare.io";
@@ -588,7 +553,6 @@ function build(v) {
 function setParsed(kind, html) {
   $("parsed").className = "parsed " + kind;
   $("status").innerHTML = html;
-  $("parsedList").classList.toggle("hidden", kind !== "ok");
 }
 
 function renderSummary() {
@@ -601,7 +565,7 @@ function renderSummary() {
 
 function stepDone(i, ok) { $("st" + i).classList.toggle("done", !!ok); }
 
-function render(msg) {
+function render() {
   const nSel = renderSummary();
   stepDone(2, nSel > 0);
   const v = read();
@@ -616,8 +580,9 @@ function render(msg) {
   if (!tpl.mac) return;
   if (!v) {
     cur = null;
-    if (msg) setParsed("bad", "✗ " + esc(msg));
-    else setParsed("idle", $("raw").value.trim() || $("host").value.trim() ? "还差几项没填（地址、端口、用户名、密码都要有）" : "等你粘贴…");
+    const any = ["host", "port", "user", "pass"].some((k) => $(k).value.trim());
+    const badPort = $("port").value.trim() && !/^\d+$/.test($("port").value.trim());
+    setParsed(badPort ? "bad" : "idle", badPort ? "✗ 端口只能是数字" : any ? "还差几项没填（地址、端口、用户名、密码都要有）" : "填好四项后，下面的按钮就能用了。");
     $("pre-mac").textContent = $("pre-android").textContent = $("pre-win").textContent = "（先在第 1 步填写）";
     $("qr").innerHTML = '<span style="color:#888;font-size:13px">填好后显示二维码</span>';
     for (const k of ["host", "port", "user", "pass"]) $("m-" + k).textContent = k === "host" ? "（先填第 1 步）" : "-";
@@ -627,9 +592,7 @@ function render(msg) {
     return;
   }
   cur = build(v);
-  setParsed("ok", `✓ 已识别 ${v.proto.toUpperCase()} 代理`);
-  $("pv-host").textContent = v.host; $("pv-port").textContent = v.port; $("pv-user").textContent = v.user;
-  $("pv-pass").textContent = v.pass.length > 4 ? v.pass.slice(0, 2) + "•".repeat(Math.min(8, v.pass.length - 2)) : "••••";
+  setParsed("ok", `✓ 已填好：${v.proto.toUpperCase()} ${esc(v.host)}:${v.port}`);
   $("m-type").textContent = v.proto === "socks5" ? "Socks5" : "HTTP";
   $("pre-mac").textContent = cur.mac;
   $("pre-android").textContent = cur.android;
